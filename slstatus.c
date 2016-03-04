@@ -13,7 +13,7 @@
 
 char *smprintf(char *fmt, ...);
 
-void *setstatus(char *str);
+void setstatus(char *str);
 
 char *wifi_signal();
 char *battery();
