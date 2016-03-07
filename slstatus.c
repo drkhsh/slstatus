@@ -1,5 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 
+/* global libraries */
 #include <alsa/asoundlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -9,21 +10,181 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 
+/* local libraries */
 #include "config.h"
 
-char *smprintf(char *fmt, ...);
-
+/* functions */
 void setstatus(char *str);
-
-char *wifi_signal();
 char *battery();
-char *cpu_usage();
 char *cpu_temperature();
-char *ram_usage();
-char *volume();
+char *cpu_usage();
 char *datetime();
+char *ram_usage();
+char *smprintf(char *fmt, ...);
+char *volume();
+char *wifi_signal();
 
+/* global variables */
 static Display *dpy;
+
+/* set statusbar (WM_NAME) */
+void
+setstatus(char *str)
+{
+	XStoreName(dpy, DefaultRootWindow(dpy), str);
+	XSync(dpy, False);
+}
+
+/* battery percentage */
+char *
+battery()
+{
+	int batt_now, batt_full, batt_perc;
+	FILE *fp;
+
+    /* open battery now file */
+	if (!(fp = fopen(batterynowfile, "r"))) {
+        fprintf(stderr, "Error opening battery file.");
+        exit(1);
+    }
+
+    /* read value */
+	fscanf(fp, "%i", &batt_now);
+
+    /* close battery now file */
+	fclose(fp);
+	
+    /* open battery full file */
+	if (!(fp = fopen(batteryfullfile, "r"))) {
+        fprintf(stderr, "Error opening battery file.");
+        exit(1);
+    }
+
+    /* read value */
+	fscanf(fp, "%i", &batt_full);
+
+    /* close battery full file */
+	fclose(fp);
+
+    /* calculate percent */
+	batt_perc = batt_now / (batt_full / 100);
+
+    /* return batt_perc as string */
+	return smprintf("%d%%", batt_perc);
+}
+
+/* cpu temperature */
+char *
+cpu_temperature()
+{
+    int temperature;
+    FILE *fp;
+
+    /* open temperature file */
+    if (!(fp = fopen(tempfile, "r"))) {
+        fprintf(stderr, "Could not open temperature file.\n");
+        exit(1);
+    }
+
+    /* extract temperature */
+    fscanf(fp, "%d", &temperature);
+
+    /* close temperature file */
+    fclose(fp);
+
+    /* return temperature in degrees */
+    return smprintf("%d°C", temperature / 1000);
+}
+
+/* cpu percentage */
+char *
+cpu_usage()
+{
+    int cpu_perc;
+    long double a[4], b[4];
+    FILE *fp;
+
+    /* open stat file */
+	if (!(fp = fopen("/proc/stat","r"))) {
+        fprintf(stderr, "Error opening stat file.");
+        exit(1);
+    }
+
+    /* read values */
+    fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &a[0], &a[1], &a[2], &a[3]);
+
+    /* close stat file */
+    fclose(fp);
+
+    /* wait a second (for avg values) */
+    sleep(1);
+
+    /* open stat file */
+	if (!(fp = fopen("/proc/stat","r"))) {
+        fprintf(stderr, "Error opening stat file.");
+        exit(1);
+    }
+
+    /* read values */
+    fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &b[0], &b[1], &b[2], &b[3]);
+
+    /* close stat file */
+    fclose(fp);
+
+    /* calculate avg in this second */
+    cpu_perc = 100 * ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
+
+    /* return cpu_perc as string */
+    return smprintf("%d%%", cpu_perc);
+}
+
+/* date and time */
+char *
+datetime()
+{
+	time_t tm;
+	size_t bufsize = 19;
+	char *buf = malloc(bufsize);
+
+    /* get time in format */
+	time(&tm);
+	if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
+		fprintf(stderr, "Strftime failed.\n");
+		exit(1);
+	}
+
+    /* return time */
+	return buf;
+}
+
+/* ram percentage */
+char *
+ram_usage()
+{
+    int ram_perc;
+    long total, free, available;
+    FILE *fp;
+
+    /* open meminfo file */
+	if (!(fp = fopen("/proc/meminfo", "r"))) {
+        fprintf(stderr, "Error opening meminfo file.");
+        exit(1);
+    }
+
+    /* read the values */
+    fscanf(fp, "MemTotal: %ld kB\n", &total);
+    fscanf(fp, "MemFree: %ld kB\n", &free);
+    fscanf(fp, "MemAvailable: %ld kB\n", &available);
+
+    /* close meminfo file */
+    fclose(fp);
+
+    /* calculate percentage */
+    ram_perc = 100 * (total - available) / total;
+
+    /* return ram_perc as string */
+    return smprintf("%d%%",ram_perc);
+}
 
 /* smprintf function */
 char *
@@ -48,14 +209,6 @@ smprintf(char *fmt, ...)
 	va_end(fmtargs);
 
 	return ret;
-}
-
-/* set statusbar (WM_NAME) */
-void
-setstatus(char *str)
-{
-	XStoreName(dpy, DefaultRootWindow(dpy), str);
-	XSync(dpy, False);
 }
 
 /* alsa volume percentage */
@@ -97,29 +250,6 @@ volume()
             return "mute";
         else
             return smprintf("%d%%", (vol * 100) / max);
-}
-
-/* cpu temperature */
-char *
-cpu_temperature()
-{
-    int temperature;
-    FILE *fp;
-
-    /* open temperature file */
-    if (!(fp = fopen(tempfile, "r"))) {
-        fprintf(stderr, "Could not open temperature file.\n");
-        exit(1);
-    }
-
-    /* extract temperature */
-    fscanf(fp, "%d", &temperature);
-
-    /* close temperature file */
-    fclose(fp);
-
-    /* return temperature in degrees */
-    return smprintf("%d°C", temperature / 1000);
 }
 
 /* wifi percentage */
@@ -181,134 +311,7 @@ wifi_signal()
     return smprintf("%d%%", strength);
 }
 
-/* battery percentage */
-char *
-battery()
-{
-	int batt_now, batt_full, batt_perc;
-	FILE *fp;
-
-    /* open battery now file */
-	if (!(fp = fopen(batterynowfile, "r"))) {
-        fprintf(stderr, "Error opening battery file.");
-        exit(1);
-    }
-
-    /* read value */
-	fscanf(fp, "%i", &batt_now);
-
-    /* close battery now file */
-	fclose(fp);
-	
-    /* open battery full file */
-	if (!(fp = fopen(batteryfullfile, "r"))) {
-        fprintf(stderr, "Error opening battery file.");
-        exit(1);
-    }
-
-    /* read value */
-	fscanf(fp, "%i", &batt_full);
-
-    /* close battery full file */
-	fclose(fp);
-
-    /* calculate percent */
-	batt_perc = batt_now / (batt_full / 100);
-
-    /* return batt_perc as string */
-	return smprintf("%d%%", batt_perc);
-}
-
-/* date and time */
-char *
-datetime()
-{
-	time_t tm;
-	size_t bufsize = 19;
-	char *buf = malloc(bufsize);
-
-    /* get time in format */
-	time(&tm);
-	if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
-		fprintf(stderr, "Strftime failed.\n");
-		exit(1);
-	}
-
-    /* return time */
-	return buf;
-}
-
-/* cpu percentage */
-char *
-cpu_usage()
-{
-    int cpu_perc;
-    long double a[4], b[4];
-    FILE *fp;
-
-    /* open stat file */
-	if (!(fp = fopen("/proc/stat","r"))) {
-        fprintf(stderr, "Error opening stat file.");
-        exit(1);
-    }
-
-    /* read values */
-    fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &a[0], &a[1], &a[2], &a[3]);
-
-    /* close stat file */
-    fclose(fp);
-
-    /* wait a second (for avg values) */
-    sleep(1);
-
-    /* open stat file */
-	if (!(fp = fopen("/proc/stat","r"))) {
-        fprintf(stderr, "Error opening stat file.");
-        exit(1);
-    }
-
-    /* read values */
-    fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &b[0], &b[1], &b[2], &b[3]);
-
-    /* close stat file */
-    fclose(fp);
-
-    /* calculate avg in this second */
-    cpu_perc = 100 * ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
-
-    /* return cpu_perc as string */
-    return smprintf("%d%%", cpu_perc);
-}
-
-/* ram percentage */
-char *
-ram_usage()
-{
-    int ram_perc;
-    long total, free, available;
-    FILE *fp;
-
-    /* open meminfo file */
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
-        fprintf(stderr, "Error opening meminfo file.");
-        exit(1);
-    }
-
-    /* read the values */
-    fscanf(fp, "MemTotal: %ld kB\n", &total);
-    fscanf(fp, "MemFree: %ld kB\n", &free);
-    fscanf(fp, "MemAvailable: %ld kB\n", &available);
-
-    /* close meminfo file */
-    fclose(fp);
-
-    /* calculate percentage */
-    ram_perc = 100 * (total - available) / total;
-
-    /* return ram_perc as string */
-    return smprintf("%d%%",ram_perc);
-}
-
+/* main function */
 int
 main()
 {
