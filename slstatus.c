@@ -39,7 +39,7 @@ setstatus(char *str)
 char *
 battery()
 {
-	int batt_now, batt_full, batt_perc;
+	int battery_now, battery_full, battery_perc;
 	FILE *fp;
 
     /* open battery now file */
@@ -49,7 +49,7 @@ battery()
     }
 
     /* read value */
-	fscanf(fp, "%i", &batt_now);
+	fscanf(fp, "%i", &battery_now);
 
     /* close battery now file */
 	fclose(fp);
@@ -61,16 +61,16 @@ battery()
     }
 
     /* read value */
-	fscanf(fp, "%i", &batt_full);
+	fscanf(fp, "%i", &battery_full);
 
     /* close battery full file */
 	fclose(fp);
 
     /* calculate percent */
-	batt_perc = batt_now / (batt_full / 100);
+	battery_perc = battery_now / (battery_full / 100);
 
     /* return batt_perc as string */
-	return smprintf("%d%%", batt_perc);
+	return smprintf("%d%%", battery_perc);
 }
 
 /* cpu temperature */
