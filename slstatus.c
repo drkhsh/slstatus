@@ -31,46 +31,46 @@ static Display *dpy;
 void
 setstatus(char *str)
 {
-	XStoreName(dpy, DefaultRootWindow(dpy), str);
-	XSync(dpy, False);
+    XStoreName(dpy, DefaultRootWindow(dpy), str);
+    XSync(dpy, False);
 }
 
 /* battery percentage */
 char *
 battery()
 {
-	int battery_now, battery_full, battery_perc;
-	FILE *fp;
+    int battery_now, battery_full, battery_perc;
+    FILE *fp;
 
     /* open battery now file */
-	if (!(fp = fopen(batterynowfile, "r"))) {
+    if (!(fp = fopen(batterynowfile, "r"))) {
         fprintf(stderr, "Error opening battery file.");
         exit(1);
     }
 
     /* read value */
-	fscanf(fp, "%i", &battery_now);
+    fscanf(fp, "%i", &battery_now);
 
     /* close battery now file */
-	fclose(fp);
-	
+    fclose(fp);
+
     /* open battery full file */
-	if (!(fp = fopen(batteryfullfile, "r"))) {
+    if (!(fp = fopen(batteryfullfile, "r"))) {
         fprintf(stderr, "Error opening battery file.");
         exit(1);
     }
 
     /* read value */
-	fscanf(fp, "%i", &battery_full);
+    fscanf(fp, "%i", &battery_full);
 
     /* close battery full file */
-	fclose(fp);
+    fclose(fp);
 
     /* calculate percent */
-	battery_perc = battery_now / (battery_full / 100);
+    battery_perc = battery_now / (battery_full / 100);
 
     /* return batt_perc as string */
-	return smprintf("%d%%", battery_perc);
+    return smprintf("%d%%", battery_perc);
 }
 
 /* cpu temperature */
@@ -105,7 +105,7 @@ cpu_usage()
     FILE *fp;
 
     /* open stat file */
-	if (!(fp = fopen("/proc/stat","r"))) {
+    if (!(fp = fopen("/proc/stat","r"))) {
         fprintf(stderr, "Error opening stat file.");
         exit(1);
     }
@@ -120,7 +120,7 @@ cpu_usage()
     sleep(1);
 
     /* open stat file */
-	if (!(fp = fopen("/proc/stat","r"))) {
+    if (!(fp = fopen("/proc/stat","r"))) {
         fprintf(stderr, "Error opening stat file.");
         exit(1);
     }
@@ -142,19 +142,19 @@ cpu_usage()
 char *
 datetime()
 {
-	time_t tm;
-	size_t bufsize = 19;
-	char *buf = malloc(bufsize);
+    time_t tm;
+    size_t bufsize = 19;
+    char *buf = malloc(bufsize);
 
     /* get time in format */
-	time(&tm);
-	if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
-		fprintf(stderr, "Strftime failed.\n");
-		exit(1);
-	}
+    time(&tm);
+    if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
+        fprintf(stderr, "Strftime failed.\n");
+        exit(1);
+    }
 
     /* return time */
-	return buf;
+    return buf;
 }
 
 /* ram percentage */
@@ -166,7 +166,7 @@ ram_usage()
     FILE *fp;
 
     /* open meminfo file */
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
+    if (!(fp = fopen("/proc/meminfo", "r"))) {
         fprintf(stderr, "Error opening meminfo file.");
         exit(1);
     }
@@ -190,66 +190,66 @@ ram_usage()
 char *
 smprintf(char *fmt, ...)
 {
-	va_list fmtargs;
-	char *ret;
-	int len;
+    va_list fmtargs;
+    char *ret;
+    int len;
 
-	va_start(fmtargs, fmt);
-	len = vsnprintf(NULL, 0, fmt, fmtargs);
-	va_end(fmtargs);
+    va_start(fmtargs, fmt);
+    len = vsnprintf(NULL, 0, fmt, fmtargs);
+    va_end(fmtargs);
 
-	ret = malloc(++len);
-	if (ret == NULL) {
-		fprintf(stderr, "Malloc error.");
-		exit(1);
-	}
+    ret = malloc(++len);
+    if (ret == NULL) {
+        fprintf(stderr, "Malloc error.");
+        exit(1);
+    }
 
-	va_start(fmtargs, fmt);
-	vsnprintf(ret, len, fmt, fmtargs);
-	va_end(fmtargs);
+    va_start(fmtargs, fmt);
+    vsnprintf(ret, len, fmt, fmtargs);
+    va_end(fmtargs);
 
-	return ret;
+    return ret;
 }
 
 /* alsa volume percentage */
 char *
 volume()
 {
-        int mute = 0;
-        long vol = 0, max = 0, min = 0;
+    int mute = 0;
+    long vol = 0, max = 0, min = 0;
         
-        /* get volume from alsa */
-        snd_mixer_t *handle;
-        snd_mixer_elem_t *pcm_mixer, *mas_mixer;
-        snd_mixer_selem_id_t *vol_info, *mute_info;
-        snd_mixer_open(&handle, 0);
-        snd_mixer_attach(handle, soundcard);
-        snd_mixer_selem_register(handle, NULL, NULL);
-        snd_mixer_load(handle);
-        snd_mixer_selem_id_malloc(&vol_info);
-        snd_mixer_selem_id_malloc(&mute_info);
-        snd_mixer_selem_id_set_name(vol_info, channel);
-        snd_mixer_selem_id_set_name(mute_info, channel);
-        pcm_mixer = snd_mixer_find_selem(handle, vol_info);
-        mas_mixer = snd_mixer_find_selem(handle, mute_info);
-        snd_mixer_selem_get_playback_volume_range((snd_mixer_elem_t *)pcm_mixer,
-                        &min, &max);
-        snd_mixer_selem_get_playback_volume((snd_mixer_elem_t *)pcm_mixer,
-                        SND_MIXER_SCHN_MONO, &vol);
-        snd_mixer_selem_get_playback_switch(mas_mixer, SND_MIXER_SCHN_MONO,
-                        &mute);
-        if (vol_info)
-                snd_mixer_selem_id_free(vol_info);
-        if (mute_info)
-                snd_mixer_selem_id_free(mute_info);
-        if (handle)
-                snd_mixer_close(handle);
-        
-        /* return the string (mute) */
-        if (!mute)
-            return "mute";
-        else
-            return smprintf("%d%%", (vol * 100) / max);
+    /* get volume from alsa */
+    snd_mixer_t *handle;
+    snd_mixer_elem_t *pcm_mixer, *mas_mixer;
+    snd_mixer_selem_id_t *vol_info, *mute_info;
+    snd_mixer_open(&handle, 0);
+    snd_mixer_attach(handle, soundcard);
+    snd_mixer_selem_register(handle, NULL, NULL);
+    snd_mixer_load(handle);
+    snd_mixer_selem_id_malloc(&vol_info);
+    snd_mixer_selem_id_malloc(&mute_info);
+    snd_mixer_selem_id_set_name(vol_info, channel);
+    snd_mixer_selem_id_set_name(mute_info, channel);
+    pcm_mixer = snd_mixer_find_selem(handle, vol_info);
+    mas_mixer = snd_mixer_find_selem(handle, mute_info);
+    snd_mixer_selem_get_playback_volume_range((snd_mixer_elem_t *)pcm_mixer,
+                    &min, &max);
+    snd_mixer_selem_get_playback_volume((snd_mixer_elem_t *)pcm_mixer,
+                    SND_MIXER_SCHN_MONO, &vol);
+    snd_mixer_selem_get_playback_switch(mas_mixer, SND_MIXER_SCHN_MONO,
+                    &mute);
+    if (vol_info)
+        snd_mixer_selem_id_free(vol_info);
+    if (mute_info)
+        snd_mixer_selem_id_free(mute_info);
+    if (handle)
+        snd_mixer_close(handle);
+
+    /* return the string (mute) */
+    if (!mute)
+        return "mute";
+    else
+        return smprintf("%d%%", (vol * 100) / max);
 }
 
 /* wifi percentage */
@@ -257,14 +257,14 @@ char *
 wifi_signal()
 {
     int bufsize = 255;
-	int strength;
-	char buf[bufsize];
-	char *datastart;
+    int strength;
+    char buf[bufsize];
+    char *datastart;
     char path_start[16] = "/sys/class/net/";
     char path_end[11] = "/operstate";
     char path[32];
     char status[5];
-	FILE *fp;
+    FILE *fp;
 
     /* generate the path name */
     strcat(path, path_start);
@@ -295,17 +295,16 @@ wifi_signal()
     }
 
     /* extract the signal strength */
-	fgets(buf, bufsize, fp);
-	fgets(buf, bufsize, fp);
-	fgets(buf, bufsize, fp);
-	if ((datastart = strstr(buf, "wlp3s0:")) != NULL) {
-		datastart = strstr(buf, ":");
-		sscanf(datastart + 1, " %*d   %d  %*d  %*d        %*d      %*d      %*d      %*d      %*d        %*d",
-	           &strength);
-	}
+    fgets(buf, bufsize, fp);
+    fgets(buf, bufsize, fp);
+    fgets(buf, bufsize, fp);
+    if ((datastart = strstr(buf, "wlp3s0:")) != NULL) {
+        datastart = strstr(buf, ":");
+        sscanf(datastart + 1, " %*d   %d  %*d  %*d        %*d      %*d      %*d      %*d      %*d        %*d", &strength);
+    }
 
     /* close wifi file */
-	fclose(fp);
+    fclose(fp);
 
     /* return strength in percent */
     return smprintf("%d%%", strength);
@@ -324,14 +323,14 @@ main()
     }
 
     /* return status every second */	
-	for (;;) {
-		sprintf(status, FORMATSTRING, ARGUMENTS);
-		setstatus(status);
-	}
+    for (;;) {
+        sprintf(status, FORMATSTRING, ARGUMENTS);
+        setstatus(status);
+    }
 
     /* close display */
     XCloseDisplay(dpy);
 
     /* exit successfully */
-	return 0;
+    return 0;
 }
