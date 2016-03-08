@@ -1,7 +1,8 @@
 # slstatus
+
 A suckless status monitor for DWM written in pure C without any system() calls.
 
-# information
+# Information
 
 - wifi percentage
 - battery percentage
@@ -12,6 +13,14 @@ A suckless status monitor for DWM written in pure C without any system() calls.
 - date
 - time
 
-# configuration
+# Screenshot
+
+![screenshot](screenshot.jpg)
+
+# Installation
+
+Just run ```sudo make install```!
+
+# Configuration
 
 Just edit config.h and recompile!
