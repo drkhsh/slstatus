@@ -15,12 +15,12 @@
 
 /* functions */
 void setstatus(char *str);
+char *smprintf(char *fmt, ...);
 char *get_battery();
 char *get_cpu_temperature();
 char *get_cpu_usage();
 char *get_datetime();
 char *get_ram_usage();
-char *smprintf(char *fmt, ...);
 char *get_volume();
 char *get_wifi_signal();
 
@@ -33,6 +33,31 @@ setstatus(char *str)
 {
     XStoreName(dpy, DefaultRootWindow(dpy), str);
     XSync(dpy, False);
+}
+
+/* smprintf function */
+char *
+smprintf(char *fmt, ...)
+{
+    va_list fmtargs;
+    char *ret;
+    int len;
+
+    va_start(fmtargs, fmt);
+    len = vsnprintf(NULL, 0, fmt, fmtargs);
+    va_end(fmtargs);
+
+    ret = malloc(++len);
+    if (ret == NULL) {
+        fprintf(stderr, "Malloc error.");
+        exit(1);
+    }
+
+    va_start(fmtargs, fmt);
+    vsnprintf(ret, len, fmt, fmtargs);
+    va_end(fmtargs);
+
+    return ret;
 }
 
 /* battery percentage */
@@ -187,31 +212,6 @@ get_ram_usage()
     return smprintf("%d%%",ram_perc);
 }
 
-/* smprintf function */
-char *
-smprintf(char *fmt, ...)
-{
-    va_list fmtargs;
-    char *ret;
-    int len;
-
-    va_start(fmtargs, fmt);
-    len = vsnprintf(NULL, 0, fmt, fmtargs);
-    va_end(fmtargs);
-
-    ret = malloc(++len);
-    if (ret == NULL) {
-        fprintf(stderr, "Malloc error.");
-        exit(1);
-    }
-
-    va_start(fmtargs, fmt);
-    vsnprintf(ret, len, fmt, fmtargs);
-    va_end(fmtargs);
-
-    return ret;
-}
-
 /* alsa volume percentage */
 char *
 get_volume()
@@ -318,13 +318,13 @@ int
 main()
 {
     char status[1024];
-    char *wifi_signal = NULL;
     char *battery = NULL;
-    char *cpu_usage = NULL;
     char *cpu_temperature = NULL;
+    char *cpu_usage = NULL;
+    char *datetime = NULL;
     char *ram_usage = NULL;
     char *volume = NULL;
-    char *datetime = NULL;
+    char *wifi_signal = NULL;
 
     /* open display */
     if (!(dpy = XOpenDisplay(0x0))) {
@@ -335,26 +335,26 @@ main()
     /* return status every second */
     for (;;) {
         /* assign the values */
-        wifi_signal = get_wifi_signal();
         battery = get_battery();
-        cpu_usage = get_cpu_usage();
         cpu_temperature = get_cpu_temperature();
+        cpu_usage = get_cpu_usage();
+        datetime = get_datetime();
         ram_usage = get_ram_usage();
         volume = get_volume();
-        datetime = get_datetime();
+        wifi_signal = get_wifi_signal();
 
         /* return the status */
         sprintf(status, FORMATSTRING, ARGUMENTS);
         setstatus(status);
 
         /* free the values */
-        free(wifi_signal);
         free(battery);
-        free(cpu_usage);
         free(cpu_temperature);
+        free(cpu_usage);
+        free(datetime);
         free(ram_usage);
         free(volume);
-        free(datetime);
+        free(wifi_signal);
     }
 
     /* close display */
