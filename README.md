@@ -24,3 +24,7 @@ Just run ```sudo make install```!
 # Configuration
 
 Just edit config.h and recompile!
+
+# Contributors
+
+See CONTRIBUTORS.md file.
