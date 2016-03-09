@@ -19,4 +19,4 @@ static const char timeformat[] = "%y-%m-%d %H:%M:%S";
 
 /* statusbar */
 #define FORMATSTRING "wifi %4s | bat %4s | cpu %4s %3s | ram %3s | vol %4s | %3s"
-#define ARGUMENTS wifi_signal(), battery(), cpu_usage(), cpu_temperature(), ram_usage(), volume(), datetime()
+#define ARGUMENTS pWifi_signal, pBattery, pCpu_usage, pCpu_temperature, pRam_usage, pVolume, pDatetime

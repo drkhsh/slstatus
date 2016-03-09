@@ -247,7 +247,7 @@ volume()
 
     /* return the string (mute) */
     if (!mute)
-        return "mute";
+        return smprintf("mute");
     else
         return smprintf("%d%%", (vol * 100) / max);
 }
@@ -322,10 +322,32 @@ main()
         exit(1);
     }
 
+    char *pWifi_signal = NULL;
+    char *pBattery = NULL;
+    char *pCpu_usage = NULL;
+    char *pCpu_temperature = NULL;
+    char *pRam_usage = NULL;
+    char *pVolume = NULL;
+    char *pDatetime = NULL;
+
     /* return status every second */	
     for (;;) {
+        pWifi_signal = wifi_signal();
+        pBattery = battery();
+        pCpu_usage = cpu_usage();
+        pCpu_temperature = cpu_temperature();
+        pRam_usage = ram_usage();
+        pVolume = volume();
+        pDatetime = datetime();
         sprintf(status, FORMATSTRING, ARGUMENTS);
         setstatus(status);
+        free(pWifi_signal);
+        free(pBattery);
+        free(pCpu_usage);
+        free(pCpu_temperature);
+        free(pRam_usage);
+        free(pVolume);
+        free(pDatetime);
     }
 
     /* close display */
