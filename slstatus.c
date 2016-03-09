@@ -15,14 +15,14 @@
 
 /* functions */
 void setstatus(char *str);
-char *battery();
-char *cpu_temperature();
-char *cpu_usage();
-char *datetime();
-char *ram_usage();
+char *get_battery();
+char *get_cpu_temperature();
+char *get_cpu_usage();
+char *get_datetime();
+char *get_ram_usage();
 char *smprintf(char *fmt, ...);
-char *volume();
-char *wifi_signal();
+char *get_volume();
+char *get_wifi_signal();
 
 /* global variables */
 static Display *dpy;
@@ -37,7 +37,7 @@ setstatus(char *str)
 
 /* battery percentage */
 char *
-battery()
+get_battery()
 {
     int battery_now, battery_full, battery_perc;
     FILE *fp;
@@ -75,7 +75,7 @@ battery()
 
 /* cpu temperature */
 char *
-cpu_temperature()
+get_cpu_temperature()
 {
     int temperature;
     FILE *fp;
@@ -98,7 +98,7 @@ cpu_temperature()
 
 /* cpu percentage */
 char *
-cpu_usage()
+get_cpu_usage()
 {
     int cpu_perc;
     long double a[4], b[4];
@@ -140,7 +140,7 @@ cpu_usage()
 
 /* date and time */
 char *
-datetime()
+get_datetime()
 {
     time_t tm;
     size_t bufsize = 19;
@@ -159,7 +159,7 @@ datetime()
 
 /* ram percentage */
 char *
-ram_usage()
+get_ram_usage()
 {
     int ram_perc;
     long total, free, available;
@@ -213,7 +213,7 @@ smprintf(char *fmt, ...)
 
 /* alsa volume percentage */
 char *
-volume()
+get_volume()
 {
     int mute = 0;
     long vol = 0, max = 0, min = 0;
@@ -251,7 +251,7 @@ volume()
 
 /* wifi percentage */
 char *
-wifi_signal()
+get_wifi_signal()
 {
     int bufsize = 255;
     int strength;
@@ -317,6 +317,13 @@ int
 main()
 {
     char status[1024];
+    char *wifi_signal = NULL;
+    char *battery = NULL;
+    char *cpu_usage = NULL;
+    char *cpu_temperature = NULL;
+    char *ram_usage = NULL;
+    char *volume = NULL;
+    char *datetime = NULL;
 
     /* open display */
     if (!(dpy = XOpenDisplay(0x0))) {
@@ -324,32 +331,29 @@ main()
         exit(1);
     }
 
-    char *pWifi_signal = NULL;
-    char *pBattery = NULL;
-    char *pCpu_usage = NULL;
-    char *pCpu_temperature = NULL;
-    char *pRam_usage = NULL;
-    char *pVolume = NULL;
-    char *pDatetime = NULL;
-
     /* return status every second */
     for (;;) {
-        pWifi_signal = wifi_signal();
-        pBattery = battery();
-        pCpu_usage = cpu_usage();
-        pCpu_temperature = cpu_temperature();
-        pRam_usage = ram_usage();
-        pVolume = volume();
-        pDatetime = datetime();
+        /* assign the values */
+        wifi_signal = get_wifi_signal();
+        battery = get_battery();
+        cpu_usage = get_cpu_usage();
+        cpu_temperature = get_cpu_temperature();
+        ram_usage = get_ram_usage();
+        volume = get_volume();
+        datetime = get_datetime();
+
+        /* return the status */
         sprintf(status, FORMATSTRING, ARGUMENTS);
         setstatus(status);
-        free(pWifi_signal);
-        free(pBattery);
-        free(pCpu_usage);
-        free(pCpu_temperature);
-        free(pRam_usage);
-        free(pVolume);
-        free(pDatetime);
+
+        /* free the values */
+        free(wifi_signal);
+        free(battery);
+        free(cpu_usage);
+        free(cpu_temperature);
+        free(ram_usage);
+        free(volume);
+        free(datetime);
     }
 
     /* close display */
