@@ -31,328 +31,333 @@ static Display *dpy;
 void
 setstatus(char *str)
 {
-    XStoreName(dpy, DefaultRootWindow(dpy), str);
-    XSync(dpy, False);
+  XStoreName(dpy, DefaultRootWindow(dpy), str);
+  XSync(dpy, False);
 }
 
 /* battery percentage */
 char *
 battery()
 {
-    int battery_now, battery_full, battery_perc;
-    FILE *fp;
+  int battery_now, battery_full, battery_perc;
+  FILE *fp;
 
-    /* open battery now file */
-    if (!(fp = fopen(batterynowfile, "r"))) {
-        fprintf(stderr, "Error opening battery file.");
-        exit(1);
-    }
+  /* open battery now file */
+  if (!(fp = fopen(batterynowfile, "r"))) {
+    fprintf(stderr, "Error opening battery file.");
+    exit(1);
+  }
 
-    /* read value */
-    fscanf(fp, "%i", &battery_now);
+  /* read value */
+  fscanf(fp, "%i", &battery_now);
 
-    /* close battery now file */
-    fclose(fp);
+  /* close battery now file */
+  fclose(fp);
 
-    /* open battery full file */
-    if (!(fp = fopen(batteryfullfile, "r"))) {
-        fprintf(stderr, "Error opening battery file.");
-        exit(1);
-    }
+  /* open battery full file */
+  if (!(fp = fopen(batteryfullfile, "r"))) {
+    fprintf(stderr, "Error opening battery file.");
+    exit(1);
+  }
 
-    /* read value */
-    fscanf(fp, "%i", &battery_full);
+  /* read value */
+  fscanf(fp, "%i", &battery_full);
 
-    /* close battery full file */
-    fclose(fp);
+  /* close battery full file */
+  fclose(fp);
 
-    /* calculate percent */
-    battery_perc = battery_now / (battery_full / 100);
+  /* calculate percent */
+  battery_perc = battery_now / (battery_full / 100);
 
-    /* return batt_perc as string */
-    return smprintf("%d%%", battery_perc);
+  /* return batt_perc as string */
+  return smprintf("%d%%", battery_perc);
 }
 
 /* cpu temperature */
 char *
 cpu_temperature()
 {
-    int temperature;
-    FILE *fp;
+  int temperature;
+  FILE *fp;
 
-    /* open temperature file */
-    if (!(fp = fopen(tempfile, "r"))) {
-        fprintf(stderr, "Could not open temperature file.\n");
-        exit(1);
-    }
+  /* open temperature file */
+  if (!(fp = fopen(tempfile, "r"))) {
+    fprintf(stderr, "Could not open temperature file.\n");
+    exit(1);
+  }
 
-    /* extract temperature */
-    fscanf(fp, "%d", &temperature);
+  /* extract temperature */
+  fscanf(fp, "%d", &temperature);
 
-    /* close temperature file */
-    fclose(fp);
+  /* close temperature file */
+  fclose(fp);
 
-    /* return temperature in degrees */
-    return smprintf("%d°C", temperature / 1000);
+  /* return temperature in degrees */
+  return smprintf("%d°C", temperature / 1000);
 }
 
 /* cpu percentage */
 char *
 cpu_usage()
 {
-    int cpu_perc;
-    long double a[4], b[4];
-    FILE *fp;
+  int cpu_perc;
+  long double a[4], b[4];
+  FILE *fp;
 
-    /* open stat file */
-    if (!(fp = fopen("/proc/stat","r"))) {
-        fprintf(stderr, "Error opening stat file.");
-        exit(1);
-    }
+  /* open stat file */
+  if (!(fp = fopen("/proc/stat","r"))) {
+    fprintf(stderr, "Error opening stat file.");
+    exit(1);
+  }
 
-    /* read values */
-    fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &a[0], &a[1], &a[2], &a[3]);
+  /* read values */
+  fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &a[0], &a[1], &a[2], &a[3]);
 
-    /* close stat file */
-    fclose(fp);
+  /* close stat file */
+  fclose(fp);
 
-    /* wait a second (for avg values) */
-    sleep(1);
+  /* wait a second (for avg values) */
+  sleep(1);
 
-    /* open stat file */
-    if (!(fp = fopen("/proc/stat","r"))) {
-        fprintf(stderr, "Error opening stat file.");
-        exit(1);
-    }
+  /* open stat file */
+  if (!(fp = fopen("/proc/stat","r"))) {
+    fprintf(stderr, "Error opening stat file.");
+    exit(1);
+  }
 
-    /* read values */
-    fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &b[0], &b[1], &b[2], &b[3]);
+  /* read values */
+  fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &b[0], &b[1], &b[2], &b[3]);
 
-    /* close stat file */
-    fclose(fp);
+  /* close stat file */
+  fclose(fp);
 
-    /* calculate avg in this second */
-    cpu_perc = 100 * ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
+  /* calculate avg in this second */
+  cpu_perc = 100 * ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
 
-    /* return cpu_perc as string */
-    return smprintf("%d%%", cpu_perc);
+  /* return cpu_perc as string */
+  return smprintf("%d%%", cpu_perc);
 }
 
 /* date and time */
 char *
 datetime()
 {
-    time_t tm;
-    size_t bufsize = 19;
-    char *buf = malloc(bufsize);
+  time_t tm;
+  size_t bufsize = 19;
+  char *buf = malloc(bufsize);
 
-    /* get time in format */
-    time(&tm);
-    if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
-        fprintf(stderr, "Strftime failed.\n");
-        exit(1);
-    }
+  /* get time in format */
+  time(&tm);
+  if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
+    fprintf(stderr, "Strftime failed.\n");
+    exit(1);
+  }
 
-    /* return time */
-    return buf;
+  /* return time */
+  return buf;
 }
 
 /* ram percentage */
 char *
 ram_usage()
 {
-    int ram_perc;
-    long total, free, available;
-    FILE *fp;
+  int ram_perc;
+  long total, free, available;
+  FILE *fp;
 
-    /* open meminfo file */
-    if (!(fp = fopen("/proc/meminfo", "r"))) {
-        fprintf(stderr, "Error opening meminfo file.");
-        exit(1);
-    }
+  /* open meminfo file */
+  if (!(fp = fopen("/proc/meminfo", "r"))) {
+    fprintf(stderr, "Error opening meminfo file.");
+    exit(1);
+  }
 
-    /* read the values */
-    fscanf(fp, "MemTotal: %ld kB\n", &total);
-    fscanf(fp, "MemFree: %ld kB\n", &free);
-    fscanf(fp, "MemAvailable: %ld kB\n", &available);
+  /* read the values */
+  fscanf(fp, "MemTotal: %ld kB\n", &total);
+  fscanf(fp, "MemFree: %ld kB\n", &free);
+  fscanf(fp, "MemAvailable: %ld kB\n", &available);
 
-    /* close meminfo file */
-    fclose(fp);
+  /* close meminfo file */
+  fclose(fp);
 
-    /* calculate percentage */
-    ram_perc = 100 * (total - available) / total;
+  /* calculate percentage */
+  ram_perc = 100 * (total - available) / total;
 
-    /* return ram_perc as string */
-    return smprintf("%d%%",ram_perc);
+  /* return ram_perc as string */
+  return smprintf("%d%%",ram_perc);
 }
 
 /* smprintf function */
 char *
 smprintf(char *fmt, ...)
 {
-    va_list fmtargs;
-    char *ret;
-    int len;
+  va_list fmtargs;
+  char *ret;
+  int len;
 
-    va_start(fmtargs, fmt);
-    len = vsnprintf(NULL, 0, fmt, fmtargs);
-    va_end(fmtargs);
+  va_start(fmtargs, fmt);
+  len = vsnprintf(NULL, 0, fmt, fmtargs);
+  va_end(fmtargs);
 
-    ret = malloc(++len);
-    if (ret == NULL) {
-        fprintf(stderr, "Malloc error.");
-        exit(1);
-    }
+  ret = malloc(++len);
+  if (ret == NULL) {
+    fprintf(stderr, "Malloc error.");
+    exit(1);
+  }
 
-    va_start(fmtargs, fmt);
-    vsnprintf(ret, len, fmt, fmtargs);
-    va_end(fmtargs);
+  va_start(fmtargs, fmt);
+  vsnprintf(ret, len, fmt, fmtargs);
+  va_end(fmtargs);
 
-    return ret;
+  return ret;
 }
 
 /* alsa volume percentage */
 char *
 volume()
 {
-    int mute = 0;
-    long vol = 0, max = 0, min = 0;
-        
-    /* get volume from alsa */
-    snd_mixer_t *handle;
-    snd_mixer_elem_t *pcm_mixer, *mas_mixer;
-    snd_mixer_selem_id_t *vol_info, *mute_info;
-    snd_mixer_open(&handle, 0);
-    snd_mixer_attach(handle, soundcard);
-    snd_mixer_selem_register(handle, NULL, NULL);
-    snd_mixer_load(handle);
-    snd_mixer_selem_id_malloc(&vol_info);
-    snd_mixer_selem_id_malloc(&mute_info);
-    snd_mixer_selem_id_set_name(vol_info, channel);
-    snd_mixer_selem_id_set_name(mute_info, channel);
-    pcm_mixer = snd_mixer_find_selem(handle, vol_info);
-    mas_mixer = snd_mixer_find_selem(handle, mute_info);
-    snd_mixer_selem_get_playback_volume_range((snd_mixer_elem_t *)pcm_mixer,
-                    &min, &max);
-    snd_mixer_selem_get_playback_volume((snd_mixer_elem_t *)pcm_mixer,
-                    SND_MIXER_SCHN_MONO, &vol);
-    snd_mixer_selem_get_playback_switch(mas_mixer, SND_MIXER_SCHN_MONO,
-                    &mute);
-    if (vol_info)
-        snd_mixer_selem_id_free(vol_info);
-    if (mute_info)
-        snd_mixer_selem_id_free(mute_info);
-    if (handle)
-        snd_mixer_close(handle);
+  int mute = 0;
+  long vol = 0, max = 0, min = 0;
 
-    /* return the string (mute) */
-    if (!mute)
-        return smprintf("mute");
-    else
-        return smprintf("%d%%", (vol * 100) / max);
+  /* get volume from alsa */
+  snd_mixer_t *handle;
+  snd_mixer_elem_t *pcm_mixer, *mas_mixer;
+  snd_mixer_selem_id_t *vol_info, *mute_info;
+  snd_mixer_open(&handle, 0);
+  snd_mixer_attach(handle, soundcard);
+  snd_mixer_selem_register(handle, NULL, NULL);
+  snd_mixer_load(handle);
+  snd_mixer_selem_id_malloc(&vol_info);
+  snd_mixer_selem_id_malloc(&mute_info);
+  snd_mixer_selem_id_set_name(vol_info, channel);
+  snd_mixer_selem_id_set_name(mute_info, channel);
+  pcm_mixer = snd_mixer_find_selem(handle, vol_info);
+  mas_mixer = snd_mixer_find_selem(handle, mute_info);
+  snd_mixer_selem_get_playback_volume_range((snd_mixer_elem_t *)pcm_mixer,
+                                            &min, &max);
+  snd_mixer_selem_get_playback_volume((snd_mixer_elem_t *)pcm_mixer,
+                                      SND_MIXER_SCHN_MONO, &vol);
+  snd_mixer_selem_get_playback_switch(mas_mixer, SND_MIXER_SCHN_MONO,
+                                      &mute);
+  if (vol_info)
+    snd_mixer_selem_id_free(vol_info);
+  if (mute_info)
+    snd_mixer_selem_id_free(mute_info);
+  if (handle)
+    snd_mixer_close(handle);
+
+  /* return the string (mute) */
+  if (!mute)
+    return smprintf("mute");
+  else
+    return smprintf("%d%%", (vol * 100) / max);
 }
 
 /* wifi percentage */
 char *
 wifi_signal()
 {
-    int bufsize = 255;
-    int strength;
-    char buf[bufsize];
-    char *datastart;
-    char path_start[16] = "/sys/class/net/";
-    char path_end[11] = "/operstate";
-    char path[32];
-    char status[5];
-    FILE *fp;
+  int bufsize = 255;
+  int strength;
+  char buf[bufsize];
+  char *datastart;
+  char path_start[16] = "/sys/class/net/";
+  char path_end[11] = "/operstate";
+  char path[32];
+  char status[5];
+  char needle[sizeof wificard + 1];
+  FILE *fp;
 
-    /* generate the path name */
-    strcat(path, path_start);
-    strcat(path, wificard);
-    strcat(path, path_end);
+  /* generate the path name */
 
-    /* open wifi file */
-    if(!(fp = fopen(path, "r"))) {
-        fprintf(stderr, "Error opening wifi operstate file.");
-        exit(1);
-    }
+  memset(path, 0, sizeof path);
+  strcat(path, path_start);
+  strcat(path, wificard);
+  strcat(path, path_end);
 
-    /* read the status */
-    fgets(status, 5, fp);
+  /* open wifi file */
+  if(!(fp = fopen(path, "r"))) {
+    fprintf(stderr, "Error opening wifi operstate file.");
+    exit(1);
+  }
 
-    /* close wifi file */
-    fclose(fp);
+  /* read the status */
+  fgets(status, 5, fp);
 
-    /* check if interface down */
-    if(strcmp(status, "up\n") != 0){
-        return "n/a";
-    }
+  /* close wifi file */
+  fclose(fp);
 
-    /* open wifi file */
-    if (!(fp = fopen("/proc/net/wireless", "r"))) {
-        fprintf(stderr, "Error opening wireless file.");
-        exit(1);
-    }
+  /* check if interface down */
+  if(strcmp(status, "up\n") != 0){
+    return "n/a";
+  }
 
-    /* extract the signal strength */
-    fgets(buf, bufsize, fp);
-    fgets(buf, bufsize, fp);
-    fgets(buf, bufsize, fp);
-    if ((datastart = strstr(buf, "wlp3s0:")) != NULL) {
-        datastart = strstr(buf, ":");
-        sscanf(datastart + 1, " %*d   %d  %*d  %*d        %*d      %*d      %*d      %*d      %*d        %*d", &strength);
-    }
+  /* open wifi file */
+  if (!(fp = fopen("/proc/net/wireless", "r"))) {
+    fprintf(stderr, "Error opening wireless file.");
+    exit(1);
+  }
 
-    /* close wifi file */
-    fclose(fp);
+  /* extract the signal strength */
+  strcpy(needle, wificard);
+  strcat(needle, ":");
+  fgets(buf, bufsize, fp);
+  fgets(buf, bufsize, fp);
+  fgets(buf, bufsize, fp);
+  if ((datastart = strstr(buf, needle)) != NULL) {
+    datastart = strstr(buf, ":");
+    sscanf(datastart + 1, " %*d   %d  %*d  %*d        %*d      %*d      %*d      %*d      %*d        %*d", &strength);
+  }
 
-    /* return strength in percent */
-    return smprintf("%d%%", strength);
+  /* close wifi file */
+  fclose(fp);
+
+  /* return strength in percent */
+  return smprintf("%d%%", strength);
 }
 
 /* main function */
 int
 main()
 {
-    char status[1024];
+  char status[1024];
 
-    /* open display */
-    if (!(dpy = XOpenDisplay(0x0))) {
-        fprintf(stderr, "Cannot open display!\n");
-        exit(1);
-    }
+  /* open display */
+  if (!(dpy = XOpenDisplay(0x0))) {
+    fprintf(stderr, "Cannot open display!\n");
+    exit(1);
+  }
 
-    char *pWifi_signal = NULL;
-    char *pBattery = NULL;
-    char *pCpu_usage = NULL;
-    char *pCpu_temperature = NULL;
-    char *pRam_usage = NULL;
-    char *pVolume = NULL;
-    char *pDatetime = NULL;
+  char *pWifi_signal = NULL;
+  char *pBattery = NULL;
+  char *pCpu_usage = NULL;
+  char *pCpu_temperature = NULL;
+  char *pRam_usage = NULL;
+  char *pVolume = NULL;
+  char *pDatetime = NULL;
 
-    /* return status every second */	
-    for (;;) {
-        pWifi_signal = wifi_signal();
-        pBattery = battery();
-        pCpu_usage = cpu_usage();
-        pCpu_temperature = cpu_temperature();
-        pRam_usage = ram_usage();
-        pVolume = volume();
-        pDatetime = datetime();
-        sprintf(status, FORMATSTRING, ARGUMENTS);
-        setstatus(status);
-        free(pWifi_signal);
-        free(pBattery);
-        free(pCpu_usage);
-        free(pCpu_temperature);
-        free(pRam_usage);
-        free(pVolume);
-        free(pDatetime);
-    }
+  /* return status every second */
+  for (;;) {
+    pWifi_signal = wifi_signal();
+    pBattery = battery();
+    pCpu_usage = cpu_usage();
+    pCpu_temperature = cpu_temperature();
+    pRam_usage = ram_usage();
+    pVolume = volume();
+    pDatetime = datetime();
+    sprintf(status, FORMATSTRING, ARGUMENTS);
+    setstatus(status);
+    free(pWifi_signal);
+    free(pBattery);
+    free(pCpu_usage);
+    free(pCpu_temperature);
+    free(pRam_usage);
+    free(pVolume);
+    free(pDatetime);
+  }
 
-    /* close display */
-    XCloseDisplay(dpy);
+  /* close display */
+  XCloseDisplay(dpy);
 
-    /* exit successfully */
-    return 0;
+  /* exit successfully */
+  return 0;
 }
