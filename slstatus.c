@@ -162,7 +162,7 @@ char *
 get_ram_usage()
 {
     int ram_perc;
-    long total, free, available;
+    long total, free, buffers, cached;
     FILE *fp;
 
     /* open meminfo file */
@@ -174,13 +174,14 @@ get_ram_usage()
     /* read the values */
     fscanf(fp, "MemTotal: %ld kB\n", &total);
     fscanf(fp, "MemFree: %ld kB\n", &free);
-    fscanf(fp, "MemAvailable: %ld kB\n", &available);
+    fscanf(fp, "MemAvailable: %ld kB\nBuffers: %ld kB\n", &buffers, &buffers);
+    fscanf(fp, "Cached: %ld kB\n", &cached);
 
     /* close meminfo file */
     fclose(fp);
 
     /* calculate percentage */
-    ram_perc = 100 * (total - available) / total;
+    ram_perc = 100 * ((total - free) - (buffers + cached)) / total;
 
     /* return ram_perc as string */
     return smprintf("%d%%",ram_perc);
