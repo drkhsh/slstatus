@@ -64,7 +64,7 @@ smprintf(char *fmt, ...)
 char *
 get_battery()
 {
-    int battery_now, battery_full, battery_perc;
+    int now, full, perc;
     FILE *fp;
 
     /* open battery now file */
@@ -74,7 +74,7 @@ get_battery()
     }
 
     /* read value */
-    fscanf(fp, "%i", &battery_now);
+    fscanf(fp, "%i", &now);
 
     /* close battery now file */
     fclose(fp);
@@ -86,16 +86,16 @@ get_battery()
     }
 
     /* read value */
-    fscanf(fp, "%i", &battery_full);
+    fscanf(fp, "%i", &full);
 
     /* close battery full file */
     fclose(fp);
 
     /* calculate percent */
-    battery_perc = battery_now / (battery_full / 100);
+    perc = now / (full / 100);
 
-    /* return batt_perc as string */
-    return smprintf("%d%%", battery_perc);
+    /* return perc as string */
+    return smprintf("%d%%", perc);
 }
 
 /* cpu temperature */
@@ -125,7 +125,7 @@ get_cpu_temperature()
 char *
 get_cpu_usage()
 {
-    int cpu_perc;
+    int perc;
     long double a[4], b[4];
     FILE *fp;
 
@@ -157,10 +157,10 @@ get_cpu_usage()
     fclose(fp);
 
     /* calculate avg in this second */
-    cpu_perc = 100 * ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
+    perc = 100 * ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
 
-    /* return cpu_perc as string */
-    return smprintf("%d%%", cpu_perc);
+    /* return perc as string */
+    return smprintf("%d%%", perc);
 }
 
 /* date and time */
@@ -179,14 +179,14 @@ get_datetime()
     }
 
     /* return time */
-    return buf;
+    return smprintf("%s", buf);
 }
 
 /* ram percentage */
 char *
 get_ram_usage()
 {
-    int ram_perc;
+    int perc;
     long total, free, buffers, cached;
     FILE *fp;
 
@@ -206,10 +206,10 @@ get_ram_usage()
     fclose(fp);
 
     /* calculate percentage */
-    ram_perc = 100 * ((total - free) - (buffers + cached)) / total;
+    perc = 100 * ((total - free) - (buffers + cached)) / total;
 
-    /* return ram_perc as string */
-    return smprintf("%d%%",ram_perc);
+    /* return perc as string */
+    return smprintf("%d%%", perc);
 }
 
 /* alsa volume percentage */
@@ -266,7 +266,6 @@ get_wifi_signal()
     FILE *fp;
 
     /* generate the path name */
-
     memset(path, 0, sizeof path);
     strcat(path, path_start);
     strcat(path, wificard);
