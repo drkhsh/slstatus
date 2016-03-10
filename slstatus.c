@@ -3,6 +3,7 @@
 /* global libraries */
 #include <alsa/asoundlib.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -191,11 +192,14 @@ get_datetime()
 
     /* get time in format */
     time(&tm);
+    setlocale(LC_TIME, "");
     if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
+        setlocale(LC_TIME, "C");
         fprintf(stderr, "Strftime failed.\n");
         return smprintf("n/a");
     }
 
+    setlocale(LC_TIME, "C");
     /* return time */
     return smprintf("%s", buf);
 }
