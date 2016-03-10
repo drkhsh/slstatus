@@ -37,6 +37,8 @@ done &
 
 # Contributing
 
+See TODO.md for things that you could do.
+
 People who contributed are listed in the CONTRIBUTORS.md file.
 
-If you want to contribute, please use [the suckless coding style](http://suckless.org/coding_style)!
+If you want to contribute, please use [the suckless coding style](http://suckless.org/coding_style)! For indentation please use 4 spaces.
