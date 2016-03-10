@@ -143,13 +143,13 @@ char *
 get_datetime()
 {
     time_t tm;
-    size_t bufsize = 19;
+    size_t bufsize = 64;
     char *buf = malloc(bufsize);
 
     /* get time in format */
     time(&tm);
     if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
-        fprintf(stderr, "Strftime failed.\n");
+      fprintf(stderr, "Strftime failed.\n");
         exit(1);
     }
 
