@@ -35,6 +35,8 @@ while true; do
 done &
 ```
 
-# Contributors
+# Contributing
 
-See CONTRIBUTORS.md file.
+People who contributed are listed in the CONTRIBUTORS.md file.
+
+If you want to contribute, please use [the suckless coding style](http://suckless.org/coding_style)!
