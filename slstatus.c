@@ -42,9 +42,17 @@ int
 config_check()
 {
     struct stat fs;
+
+    /* check all files in the config.h file */
     CHECK_FILE(batterynowfile, fs);
     CHECK_FILE(batteryfullfile, fs);
     CHECK_FILE(tempfile, fs);
+
+    /* check update interval */
+    if (update_interval < 1)
+        return -1;
+
+    /* exit successfully */
     return 0;
 }
 
@@ -337,7 +345,7 @@ main()
 
     /* check config for sanity */
     if (config_check() < 0) {
-        fprintf(stderr, "Config error, please check paths and recompile\n");
+        fprintf(stderr, "Config error, please check paths and interval and recompile!\n");
         exit(1);
     }
 
