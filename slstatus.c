@@ -343,6 +343,7 @@ main()
         free(ram_usage);
         free(volume);
         free(wifi_signal);
+        sleep(update_interval);
     }
 
     /* close display */

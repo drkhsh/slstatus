@@ -17,6 +17,9 @@ static const char batteryfullfile[] = "/sys/class/power_supply/BAT0/energy_full_
 /* time */
 static const char timeformat[] = "%y-%m-%d %H:%M:%S";
 
+/* bar update interval in seconds */
+static unsigned int update_interval = 10;
+
 /* statusbar
 Possible arguments:
 - battery (battery percentage)
