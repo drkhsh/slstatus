@@ -25,6 +25,16 @@ Just run ```sudo make install```!
 
 Just edit config.h and recompile!
 
+# Starting
+
+Put this in your ~/.xinitrc:
+
+```
+while true; do
+    slstatus
+done &
+```
+
 # Contributors
 
 See CONTRIBUTORS.md file.
