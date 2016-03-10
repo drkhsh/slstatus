@@ -2,10 +2,13 @@
 
 /* global libraries */
 #include <alsa/asoundlib.h>
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 #include <X11/Xlib.h>
@@ -15,6 +18,7 @@
 
 /* functions */
 void setstatus(char *str);
+int config_check();
 char *smprintf(char *fmt, ...);
 char *get_battery();
 char *get_cpu_temperature();
@@ -40,24 +44,29 @@ char *
 smprintf(char *fmt, ...)
 {
     va_list fmtargs;
-    char *ret;
-    int len;
-
+    char *ret = NULL;
     va_start(fmtargs, fmt);
-    len = vsnprintf(NULL, 0, fmt, fmtargs);
-    va_end(fmtargs);
-
-    ret = malloc(++len);
-    if (ret == NULL) {
-        fprintf(stderr, "Malloc error.");
-        exit(1);
-    }
-
-    va_start(fmtargs, fmt);
-    vsnprintf(ret, len, fmt, fmtargs);
+    if (vasprintf(&ret, fmt, fmtargs) < 0)
+        return NULL;
     va_end(fmtargs);
 
     return ret;
+}
+
+#define CHECK_FILE(X,Y) do { \
+    if (stat(X,&Y) < 0) return -1; \
+    if (!S_ISREG(Y.st_mode)) return -1; \
+} while (0);
+
+/* check configured paths */
+int
+config_check()
+{
+    struct stat fs;
+    CHECK_FILE(batterynowfile, fs);
+    CHECK_FILE(batteryfullfile, fs);
+    CHECK_FILE(tempfile, fs);
+    return 0;
 }
 
 /* battery percentage */
@@ -70,7 +79,7 @@ get_battery()
     /* open battery now file */
     if (!(fp = fopen(batterynowfile, "r"))) {
         fprintf(stderr, "Error opening battery file.");
-        exit(1);
+        return smprintf("n/a");
     }
 
     /* read value */
@@ -82,7 +91,7 @@ get_battery()
     /* open battery full file */
     if (!(fp = fopen(batteryfullfile, "r"))) {
         fprintf(stderr, "Error opening battery file.");
-        exit(1);
+        return smprintf("n/a");
     }
 
     /* read value */
@@ -108,7 +117,7 @@ get_cpu_temperature()
     /* open temperature file */
     if (!(fp = fopen(tempfile, "r"))) {
         fprintf(stderr, "Could not open temperature file.\n");
-        exit(1);
+        return smprintf("n/a");
     }
 
     /* extract temperature */
@@ -132,7 +141,7 @@ get_cpu_usage()
     /* open stat file */
     if (!(fp = fopen("/proc/stat","r"))) {
         fprintf(stderr, "Error opening stat file.");
-        exit(1);
+        return smprintf("n/a");
     }
 
     /* read values */
@@ -147,7 +156,7 @@ get_cpu_usage()
     /* open stat file */
     if (!(fp = fopen("/proc/stat","r"))) {
         fprintf(stderr, "Error opening stat file.");
-        exit(1);
+        return smprintf("n/a");
     }
 
     /* read values */
@@ -174,8 +183,8 @@ get_datetime()
     /* get time in format */
     time(&tm);
     if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
-      fprintf(stderr, "Strftime failed.\n");
-        exit(1);
+        fprintf(stderr, "Strftime failed.\n");
+        return smprintf("n/a");
     }
 
     /* return time */
@@ -193,7 +202,7 @@ get_ram_usage()
     /* open meminfo file */
     if (!(fp = fopen("/proc/meminfo", "r"))) {
         fprintf(stderr, "Error opening meminfo file.");
-        exit(1);
+        return smprintf("n/a");
     }
 
     /* read the values */
@@ -274,7 +283,7 @@ get_wifi_signal()
     /* open wifi file */
     if(!(fp = fopen(path, "r"))) {
         fprintf(stderr, "Error opening wifi operstate file.");
-        exit(1);
+        return smprintf("n/a");
     }
 
     /* read the status */
@@ -285,13 +294,13 @@ get_wifi_signal()
 
     /* check if interface down */
     if(strcmp(status, "up\n") != 0){
-        return "n/a";
+        return smprintf("n/a");
     }
 
     /* open wifi file */
     if (!(fp = fopen("/proc/net/wireless", "r"))) {
         fprintf(stderr, "Error opening wireless file.");
-        exit(1);
+        return smprintf("n/a");
     }
 
     /* extract the signal strength */
@@ -325,6 +334,11 @@ main()
     char *volume = NULL;
     char *wifi_signal = NULL;
 
+    /* check config for sanity */
+    if (config_check() < 0) {
+        fprintf(stderr, "Config error, please check paths and recompile\n");
+        exit(1);
+    }
     /* open display */
     if (!(dpy = XOpenDisplay(0x0))) {
         fprintf(stderr, "Cannot open display!\n");
@@ -354,6 +368,7 @@ main()
         free(ram_usage);
         free(volume);
         free(wifi_signal);
+        sleep(update_interval);
     }
 
     /* close display */
