@@ -16,9 +16,15 @@
 /* local libraries */
 #include "config.h"
 
+/* check file macro */
+#define CHECK_FILE(X,Y) do { \
+    if (stat(X,&Y) < 0) return -1; \
+    if (!S_ISREG(Y.st_mode)) return -1; \
+} while (0);
+
 /* functions */
-void setstatus(char *str);
 int config_check();
+void setstatus(char *str);
 char *smprintf(char *fmt, ...);
 char *get_battery();
 char *get_cpu_temperature();
@@ -30,6 +36,17 @@ char *get_wifi_signal();
 
 /* global variables */
 static Display *dpy;
+
+/* check configured paths */
+int
+config_check()
+{
+    struct stat fs;
+    CHECK_FILE(batterynowfile, fs);
+    CHECK_FILE(batteryfullfile, fs);
+    CHECK_FILE(tempfile, fs);
+    return 0;
+}
 
 /* set statusbar (WM_NAME) */
 void
@@ -51,22 +68,6 @@ smprintf(char *fmt, ...)
     va_end(fmtargs);
 
     return ret;
-}
-
-#define CHECK_FILE(X,Y) do { \
-    if (stat(X,&Y) < 0) return -1; \
-    if (!S_ISREG(Y.st_mode)) return -1; \
-} while (0);
-
-/* check configured paths */
-int
-config_check()
-{
-    struct stat fs;
-    CHECK_FILE(batterynowfile, fs);
-    CHECK_FILE(batteryfullfile, fs);
-    CHECK_FILE(tempfile, fs);
-    return 0;
 }
 
 /* battery percentage */
@@ -339,6 +340,7 @@ main()
         fprintf(stderr, "Config error, please check paths and recompile\n");
         exit(1);
     }
+
     /* open display */
     if (!(dpy = XOpenDisplay(0x0))) {
         fprintf(stderr, "Cannot open display!\n");
@@ -368,7 +370,9 @@ main()
         free(ram_usage);
         free(volume);
         free(wifi_signal);
-        sleep(update_interval);
+
+        /* wait, "update_interval - 1" because of get_cpu_usage() which uses 1 second */
+        sleep(update_interval -1);
     }
 
     /* close display */
