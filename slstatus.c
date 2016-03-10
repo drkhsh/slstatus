@@ -2,10 +2,13 @@
 
 /* global libraries */
 #include <alsa/asoundlib.h>
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 #include <X11/Xlib.h>
@@ -15,6 +18,7 @@
 
 /* functions */
 void setstatus(char *str);
+int config_check();
 char *smprintf(char *fmt, ...);
 char *get_battery();
 char *get_cpu_temperature();
@@ -47,6 +51,22 @@ smprintf(char *fmt, ...)
     va_end(fmtargs);
 
     return ret;
+}
+
+#define CHECK_FILE(X,Y) do { \
+    if (stat(X,&Y) < 0) return -1; \
+    if (!S_ISREG(Y.st_mode)) return -1; \
+} while (0);
+
+/* check configured paths */
+int
+config_check()
+{
+    struct stat fs;
+    CHECK_FILE(batterynowfile, fs);
+    CHECK_FILE(batteryfullfile, fs);
+    CHECK_FILE(tempfile, fs);
+    return 0;
 }
 
 /* battery percentage */
@@ -314,6 +334,11 @@ main()
     char *volume = NULL;
     char *wifi_signal = NULL;
 
+    /* check config for sanity */
+    if (config_check() < 0) {
+        fprintf(stderr, "Config error, please check paths and recompile\n");
+        exit(1);
+    }
     /* open display */
     if (!(dpy = XOpenDisplay(0x0))) {
         fprintf(stderr, "Cannot open display!\n");
