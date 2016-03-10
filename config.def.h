@@ -17,6 +17,14 @@ static const char batteryfullfile[] = "/sys/class/power_supply/BAT0/energy_full_
 /* time */
 static const char timeformat[] = "%y-%m-%d %H:%M:%S";
 
-/* statusbar */
+/* statusbar
+Possible arguments:
+- battery (battery percentage)
+- cpu_temperature (cpu temperature in degrees)
+- cpu usage (cpu usage in percent)
+- datetime (date and time)
+- ram_usage (ram usage in percent)
+- volume (alsa volume and mute status in percent)
+- wifi_signal (wifi signal in percent) */
 #define FORMATSTRING "wifi %4s | bat %4s | cpu %4s %3s | ram %3s | vol %4s | %3s"
 #define ARGUMENTS wifi_signal, battery, cpu_usage, cpu_temperature, ram_usage, volume, datetime
