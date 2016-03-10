@@ -40,21 +40,10 @@ char *
 smprintf(char *fmt, ...)
 {
     va_list fmtargs;
-    char *ret;
-    int len;
-
+    char *ret = NULL;
     va_start(fmtargs, fmt);
-    len = vsnprintf(NULL, 0, fmt, fmtargs);
-    va_end(fmtargs);
-
-    ret = malloc(++len);
-    if (ret == NULL) {
-        fprintf(stderr, "Malloc error.");
-        exit(1);
-    }
-
-    va_start(fmtargs, fmt);
-    vsnprintf(ret, len, fmt, fmtargs);
+    if (vasprintf(&ret, fmt, fmtargs) < 0)
+        return NULL;
     va_end(fmtargs);
 
     return ret;
