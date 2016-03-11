@@ -212,7 +212,7 @@ get_diskusage()
 {
     int perc = 0;
     struct statvfs fs;
-    
+
     /* try to open mountpoint */
     if (statvfs(mountpath, &fs) < 0) {
         fprintf(stderr, "Could not get filesystem info.\n");
