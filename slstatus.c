@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <time.h>
 #include <unistd.h>
 #include <X11/Xlib.h>
@@ -31,6 +32,7 @@ char *get_battery();
 char *get_cpu_temperature();
 char *get_cpu_usage();
 char *get_datetime();
+char *get_diskusage();
 char *get_ram_usage();
 char *get_volume();
 char *get_wifi_signal();
@@ -204,6 +206,20 @@ get_datetime()
     return smprintf("%s", buf);
 }
 
+/* disk usage percentage */
+char *
+get_diskusage()
+{
+    struct statvfs fs;
+    float perc = 0;
+    if (statvfs(mountpath, &fs) < 0) {
+        fprintf(stderr, "Could not get filesystem info.\n");
+        return smprintf("n/a");
+    }
+    perc = 1.0f - ((float)fs.f_bavail/(float)fs.f_blocks);
+    return smprintf("%2f%%", perc);
+}
+
 /* ram percentage */
 char *
 get_ram_usage()
@@ -343,6 +359,7 @@ main()
     char *cpu_temperature = NULL;
     char *cpu_usage = NULL;
     char *datetime = NULL;
+    char *diskusage = NULL;
     char *ram_usage = NULL;
     char *volume = NULL;
     char *wifi_signal = NULL;
@@ -366,6 +383,7 @@ main()
         cpu_temperature = get_cpu_temperature();
         cpu_usage = get_cpu_usage();
         datetime = get_datetime();
+        diskusage = get_diskusage();
         ram_usage = get_ram_usage();
         volume = get_volume();
         wifi_signal = get_wifi_signal();
@@ -379,6 +397,7 @@ main()
         free(cpu_temperature);
         free(cpu_usage);
         free(datetime);
+        free(diskusage);
         free(ram_usage);
         free(volume);
         free(wifi_signal);
