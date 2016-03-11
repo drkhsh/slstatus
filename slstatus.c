@@ -210,14 +210,20 @@ get_datetime()
 char *
 get_diskusage()
 {
+    int perc = 0;
     struct statvfs fs;
-    float perc = 0;
+    
+    /* try to open mountpoint */
     if (statvfs(mountpath, &fs) < 0) {
         fprintf(stderr, "Could not get filesystem info.\n");
         return smprintf("n/a");
     }
-    perc = 1.0f - ((float)fs.f_bavail/(float)fs.f_blocks);
-    return smprintf("%2f%%", perc);
+
+    /* calculate percent */
+    perc = 100 * (1.0f - ((float)fs.f_bavail / (float)fs.f_blocks));
+
+    /* return perc */
+    return smprintf("%d%%", perc);
 }
 
 /* ram percentage */
