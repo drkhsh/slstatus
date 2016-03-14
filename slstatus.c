@@ -15,64 +15,48 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 
-/* local libraries */
-#include "config.h"
-
-/* check file macro */
-#define CHECK_FILE(X,Y) do { \
-    if (stat(X,&Y) < 0) return -1; \
-    if (!S_ISREG(Y.st_mode)) return -1; \
-} while (0);
-
-/* functions */
-int config_check();
-void setstatus(char *str);
-char *smprintf(char *fmt, ...);
-char *get_battery();
-char *get_cpu_temperature();
-char *get_cpu_usage();
-char *get_datetime();
-char *get_diskusage();
-char *get_ram_usage();
-char *get_volume();
-char *get_wifi_signal();
-
 /* global variables */
 static Display *dpy;
 
-/* check configured paths */
-int
-config_check()
-{
-    struct stat fs;
+/* statusbar configuration type and struct */
+typedef char *(*op_fun) (const char *);
+struct arg {
+    op_fun func;
+    const char *format;
+    const char *args;
+};
 
-    /* check all files in the config.h file */
-    CHECK_FILE(batterynowfile, fs);
-    CHECK_FILE(batteryfullfile, fs);
-    CHECK_FILE(tempfile, fs);
+/* functions */
+void setstatus(const char *);
+char *smprintf(const char *, ...);
+char *get_battery(const char *);
+char *get_cpu_temperature(const char *);
+char *get_cpu_usage(const char *);
+char *get_datetime(const char *);
+char *get_diskusage(const char *);
+char *get_ram_usage(const char *);
+char *get_volume(const char *);
+char *get_wifi_signal(const char *);
 
-    /* check update interval */
-    if (update_interval < 1)
-        return -1;
+/* include config header */
+#include "config.h"
 
-    /* exit successfully */
-    return 0;
-}
-
-/* set statusbar (WM_NAME) */
+/* set statusbar */
 void
-setstatus(char *str)
+setstatus(const char *str)
 {
+    /* set WM_NAME via X11 */
     XStoreName(dpy, DefaultRootWindow(dpy), str);
     XSync(dpy, False);
 }
 
 /* smprintf function */
 char *
-smprintf(char *fmt, ...)
+smprintf(const char *fmt, ...)
 {
     va_list fmtargs;
     char *ret = NULL;
+
     va_start(fmtargs, fmt);
     if (vasprintf(&ret, fmt, fmtargs) < 0)
         return NULL;
@@ -83,14 +67,28 @@ smprintf(char *fmt, ...)
 
 /* battery percentage */
 char *
-get_battery()
+get_battery(const char *battery)
 {
     int now, full, perc;
+    char batterynowfile[64] = "";
+    char batteryfullfile[64] = "";
     FILE *fp;
+
+    /* generate battery nowfile path */
+    strcat(batterynowfile, batterypath);
+    strcat(batterynowfile, battery);
+    strcat(batterynowfile, "/");
+    strcat(batterynowfile, batterynow);
+
+    /* generate battery fullfile path */
+    strcat(batteryfullfile, batterypath);
+    strcat(batteryfullfile, battery);
+    strcat(batteryfullfile, "/");
+    strcat(batteryfullfile, batteryfull);
 
     /* open battery now file */
     if (!(fp = fopen(batterynowfile, "r"))) {
-        fprintf(stderr, "Error opening battery file.");
+        fprintf(stderr, "Error opening battery file.%s",batterynowfile);
         return smprintf("n/a");
     }
 
@@ -121,13 +119,13 @@ get_battery()
 
 /* cpu temperature */
 char *
-get_cpu_temperature()
+get_cpu_temperature(const char *file)
 {
     int temperature;
     FILE *fp;
 
     /* open temperature file */
-    if (!(fp = fopen(tempfile, "r"))) {
+    if (!(fp = fopen(file, "r"))) {
         fprintf(stderr, "Could not open temperature file.\n");
         return smprintf("n/a");
     }
@@ -144,7 +142,7 @@ get_cpu_temperature()
 
 /* cpu percentage */
 char *
-get_cpu_usage()
+get_cpu_usage(const char *null)
 {
     int perc;
     long double a[4], b[4];
@@ -186,7 +184,7 @@ get_cpu_usage()
 
 /* date and time */
 char *
-get_datetime()
+get_datetime(const char *timeformat)
 {
     time_t tm;
     size_t bufsize = 64;
@@ -208,13 +206,13 @@ get_datetime()
 
 /* disk usage percentage */
 char *
-get_diskusage()
+get_diskusage(const char *mountpoint)
 {
     int perc = 0;
     struct statvfs fs;
 
     /* try to open mountpoint */
-    if (statvfs(mountpath, &fs) < 0) {
+    if (statvfs(mountpoint, &fs) < 0) {
         fprintf(stderr, "Could not get filesystem info.\n");
         return smprintf("n/a");
     }
@@ -228,7 +226,7 @@ get_diskusage()
 
 /* ram percentage */
 char *
-get_ram_usage()
+get_ram_usage(const char *null)
 {
     int perc;
     long total, free, buffers, cached;
@@ -258,7 +256,7 @@ get_ram_usage()
 
 /* alsa volume percentage */
 char *
-get_volume()
+get_volume(const char *soundcard)
 {
     int mute = 0;
     long vol = 0, max = 0, min = 0;
@@ -296,24 +294,22 @@ get_volume()
 
 /* wifi percentage */
 char *
-get_wifi_signal()
+get_wifi_signal(const char *wificard)
 {
     int bufsize = 255;
     int strength;
     char buf[bufsize];
     char *datastart;
-    char path_start[16] = "/sys/class/net/";
-    char path_end[11] = "/operstate";
-    char path[32];
+    char path[64];
     char status[5];
     char needle[sizeof wificard + 1];
     FILE *fp;
 
     /* generate the path name */
     memset(path, 0, sizeof path);
-    strcat(path, path_start);
+    strcat(path, "/sys/class/net/");
     strcat(path, wificard);
-    strcat(path, path_end);
+    strcat(path, "/operstate");
 
     /* open wifi file */
     if(!(fp = fopen(path, "r"))) {
@@ -360,53 +356,30 @@ get_wifi_signal()
 int
 main()
 {
-    char status[1024];
-    char *battery = NULL;
-    char *cpu_temperature = NULL;
-    char *cpu_usage = NULL;
-    char *datetime = NULL;
-    char *diskusage = NULL;
-    char *ram_usage = NULL;
-    char *volume = NULL;
-    char *wifi_signal = NULL;
+    char status_string[1024];
+    struct arg argument;
 
-    /* check config for sanity */
-    if (config_check() < 0) {
-        fprintf(stderr, "Config error, please check paths and interval and recompile!\n");
-        exit(1);
-    }
-
-    /* open display */
+    /* try to open display */
     if (!(dpy = XOpenDisplay(0x0))) {
         fprintf(stderr, "Cannot open display!\n");
         exit(1);
     }
 
-    /* return status every second */
+    /* return status every interval */
     for (;;) {
-        /* assign the values */
-        battery = get_battery();
-        cpu_temperature = get_cpu_temperature();
-        cpu_usage = get_cpu_usage();
-        datetime = get_datetime();
-        diskusage = get_diskusage();
-        ram_usage = get_ram_usage();
-        volume = get_volume();
-        wifi_signal = get_wifi_signal();
+        /* clear the string */
+        strcpy(status_string, "");
 
-        /* return the status */
-        sprintf(status, FORMATSTRING, ARGUMENTS);
-        setstatus(status);
+        /* generate status_string */
+        for (size_t i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
+            argument = args[i];
+            char *res = argument.func(argument.args);
+            char *element = smprintf(argument.format, res);
+            strcat(status_string, element);
+        }
 
-        /* free the values */
-        free(battery);
-        free(cpu_temperature);
-        free(cpu_usage);
-        free(datetime);
-        free(diskusage);
-        free(ram_usage);
-        free(volume);
-        free(wifi_signal);
+        /* return the statusbar */
+        setstatus(status_string);
 
         /* wait, "update_interval - 1" because of get_cpu_usage() which uses 1 second */
         sleep(update_interval -1);
