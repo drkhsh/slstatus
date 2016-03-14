@@ -2,7 +2,7 @@
 
 A suckless status monitor for DWM written in pure C without any system() calls.
 
-# Information
+# Information included
 
 - wifi percentage
 - battery percentage
@@ -10,8 +10,11 @@ A suckless status monitor for DWM written in pure C without any system() calls.
 - cpu temperature
 - ram usage in percent
 - alsa volume level in percent
+- disk usage
 - date
 - time
+
+Multiple batteries, wifi cards etc. are supported and everything can be reordered and customized via a C header file (similar to DWM).
 
 # Screenshot
 
@@ -19,15 +22,15 @@ A suckless status monitor for DWM written in pure C without any system() calls.
 
 # Installation
 
-Just run ```sudo make install```!
+Just run ```sudo make install```! :P
 
 # Configuration
 
-Just edit config.h and recompile!
+Just change config.h (commented) to your needs and recompile!
 
 # Starting
 
-Put this in your ~/.xinitrc:
+Put the following code in your ~/.xinitrc:
 
 ```
 while true; do
