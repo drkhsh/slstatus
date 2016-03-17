@@ -179,7 +179,9 @@ get_datetime(const char *timeformat)
 
     setlocale(LC_TIME, "C");
     /* return time */
-    return smprintf("%s", buf);
+    char *ret = smprintf("%s", buf);
+    free(buf);
+    return ret;
 }
 
 /* disk usage percentage */
@@ -346,7 +348,7 @@ main()
     /* return status every interval */
     for (;;) {
         /* clear the string */
-        strcpy(status_string, "");
+        memset(status_string, 0, sizeof(status_string));
 
         /* generate status_string */
         for (size_t i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
@@ -354,6 +356,8 @@ main()
             char *res = argument.func(argument.args);
             char *element = smprintf(argument.format, res);
             strcat(status_string, element);
+            free(res);
+            free(element);
         }
 
         /* return the statusbar */
