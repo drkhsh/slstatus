@@ -14,11 +14,11 @@ struct arg {
 /* functions */
 void setstatus(const char *);
 char *smprintf(const char *, ...);
-char *get_battery(const char *);
-char *get_cpu_temperature(const char *);
-char *get_cpu_usage(const char *);
-char *get_datetime(const char *);
-char *get_diskusage(const char *);
-char *get_ram_usage(const char *);
-char *get_volume(const char *);
-char *get_wifi_signal(const char *);
+char *battery_perc(const char *);
+char *cpu_perc(const char *);
+char *datetime(const char *);
+char *disk_perc(const char *);
+char *ram_perc(const char *);
+char *temp(const char *);
+char *vol_perc(const char *);
+char *wifi_perc(const char *);

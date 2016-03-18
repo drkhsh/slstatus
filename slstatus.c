@@ -45,7 +45,7 @@ smprintf(const char *fmt, ...)
 
 /* battery percentage */
 char *
-get_battery(const char *battery)
+battery_perc(const char *battery)
 {
     int now, full, perc;
     char batterynowfile[64] = "";
@@ -95,32 +95,9 @@ get_battery(const char *battery)
     return smprintf("%d%%", perc);
 }
 
-/* cpu temperature */
-char *
-get_cpu_temperature(const char *file)
-{
-    int temperature;
-    FILE *fp;
-
-    /* open temperature file */
-    if (!(fp = fopen(file, "r"))) {
-        fprintf(stderr, "Could not open temperature file.\n");
-        return smprintf("n/a");
-    }
-
-    /* extract temperature */
-    fscanf(fp, "%d", &temperature);
-
-    /* close temperature file */
-    fclose(fp);
-
-    /* return temperature in degrees */
-    return smprintf("%d°C", temperature / 1000);
-}
-
 /* cpu percentage */
 char *
-get_cpu_usage(const char *null)
+cpu_perc(const char *null)
 {
     int perc;
     long double a[4], b[4];
@@ -162,7 +139,7 @@ get_cpu_usage(const char *null)
 
 /* date and time */
 char *
-get_datetime(const char *timeformat)
+datetime(const char *timeformat)
 {
     time_t tm;
     size_t bufsize = 64;
@@ -186,7 +163,7 @@ get_datetime(const char *timeformat)
 
 /* disk usage percentage */
 char *
-get_diskusage(const char *mountpoint)
+disk_perc(const char *mountpoint)
 {
     int perc = 0;
     struct statvfs fs;
@@ -206,7 +183,7 @@ get_diskusage(const char *mountpoint)
 
 /* ram percentage */
 char *
-get_ram_usage(const char *null)
+ram_perc(const char *null)
 {
     int perc;
     long total, free, buffers, cached;
@@ -234,9 +211,33 @@ get_ram_usage(const char *null)
     return smprintf("%d%%", perc);
 }
 
+/* temperature */
+char *
+temp(const char *file)
+{
+    int temperature;
+    FILE *fp;
+
+    /* open temperature file */
+    if (!(fp = fopen(file, "r"))) {
+        fprintf(stderr, "Could not open temperature file.\n");
+        return smprintf("n/a");
+    }
+
+    /* extract temperature */
+    fscanf(fp, "%d", &temperature);
+
+    /* close temperature file */
+    fclose(fp);
+
+    /* return temperature in degrees */
+    return smprintf("%d°C", temperature / 1000);
+}
+
+
 /* alsa volume percentage */
 char *
-get_volume(const char *soundcard)
+vol_perc(const char *soundcard)
 {
     int mute = 0;
     long vol = 0, max = 0, min = 0;
@@ -274,7 +275,7 @@ get_volume(const char *soundcard)
 
 /* wifi percentage */
 char *
-get_wifi_signal(const char *wificard)
+wifi_perc(const char *wificard)
 {
     int bufsize = 255;
     int strength;

@@ -21,13 +21,13 @@ static unsigned int update_interval = 1;
 - volume (alsa volume and mute status in percent) [argument: soundcard]
 - wifi_signal (wifi signal in percent) [argument: wifi card interface name] */
 static const struct arg args[] = {
-    /* function             format          argument */
-    { get_wifi_signal,      "wifi %4s | ",  "wlp3s0" },
-    { get_battery,          "bat %4s | ",   "BAT0" },
-    { get_cpu_usage,        "cpu %4s ",     NULL },
-    { get_cpu_temperature,  "%3s | ",       "/sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input" },
-    { get_ram_usage,        "ram %3s | ",   NULL },
-    { get_volume,           "vol %4s | ",   "default" },
-    { get_diskusage,        "ssd %3s | ",   "/" },
-    { get_datetime,         "%s",           "%y-%m-%d %H:%M:%S" }
+    /* function     format          argument */
+    { wifi_perc,    "wifi %4s | ",  "wlp3s0" },
+    { battery_perc, "bat %4s | ",   "BAT0" },
+    { cpu_perc,     "cpu %4s ",     NULL },
+    { temp,         "%3s | ",       "/sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input" },
+    { ram_perc,     "ram %3s | ",   NULL },
+    { vol_perc,     "vol %4s | ",   "default" },
+    { disk_perc,    "ssd %3s | ",   "/" },
+    { datetime,     "%s",           "%y-%m-%d %H:%M:%S" },
 };
