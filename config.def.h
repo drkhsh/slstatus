@@ -12,14 +12,14 @@ static const char batteryfull[] = "energy_full_design";
 static unsigned int update_interval = 1;
 
 /* statusbar
-- get_battery (battery percentage) [argument: battery name]
-- cpu_temperature (cpu temperature in degrees) [argument: temperature file]
-- cpu usage (cpu usage in percent)
+- battery_perc (battery percentage) [argument: battery name]
+- cpu_perc (cpu usage in percent) [argument: NULL]
 - datetime (date and time) [argument: format]
-- diskusage (disk usage in percent) [argument: mountpoint]
-- ram_usage (ram usage in percent)
-- volume (alsa volume and mute status in percent) [argument: soundcard]
-- wifi_signal (wifi signal in percent) [argument: wifi card interface name] */
+- disk_perc (disk usage in percent) [argument: mountpoint]
+- ram_perc (ram usage in percent) [argument: NULL]
+- temp (temperature in degrees) [argument: temperature file]
+- vol_perc (alsa volume and mute status in percent) [argument: soundcard]
+- wifi_perc (wifi signal in percent) [argument: wifi card interface name] */
 static const struct arg args[] = {
     /* function     format          argument */
     { wifi_perc,    "wifi %4s | ",  "wlp3s0" },

@@ -1,8 +1,9 @@
-# slstatus
+slstatus
+========
 
-A suckless status monitor for DWM written in pure C without any system() calls.
+**slstatus** is a suckless and lightweight status monitor for window managers which use WM_NAME as statusbar (e.g. DWM). It is written in pure C without any system() calls and only reads from files most of the time. It is meant as a better alternative to Bash scripts (inefficient) and Conky (bloated for this use).
 
-# Information included
+The following information is included:
 
 - wifi percentage
 - battery percentage
@@ -14,23 +15,19 @@ A suckless status monitor for DWM written in pure C without any system() calls.
 - date
 - time
 
-Multiple batteries, wifi cards etc. are supported and everything can be reordered and customized via a C header file (similar to DWM).
-
-# Screenshot
+Multiple entries (battery, wifi signal, ...) are supported and everything can be reordered and customized via a C header file (similar to DWM).
 
 ![screenshot](screenshot.png)
 
-# Installation
+## Usage
 
-Just run ```sudo make install```! :P
+### Installation
 
-# Configuration
+Before you continue, please be sure that a C compiler, `make` and `alsa-lib` are installed. Then compile the program once using `sudo make install`. After that you may change config.h to your needs and recompile it after any change! 
 
-Just change config.h (commented) to your needs and recompile!
+### Starting
 
-# Starting
-
-Put the following code in your ~/.xinitrc:
+Put the following code in your ~/.xinitrc (or similar):
 
 ```
 while true; do
@@ -38,10 +35,16 @@ while true; do
 done &
 ```
 
-# Contributing
+The loop is needed that the program runs after suspend to ram.
 
-See TODO.md for things that you could do.
+## Contributing
 
-People who contributed are listed in the CONTRIBUTORS.md file.
+In [TODO.md](TODO.md) there is a list of things that have to be done.
 
-If you want to contribute, please use [the suckless coding style](http://suckless.org/coding_style)! For indentation please use 4 spaces.
+People who contributed are listed in [CONTRIBUTORS.md](CONTRIBUTORS.md).
+
+For detailed information about coding style and restrictions see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## License
+
+See [LICENSE.md](LICENSE.md).
