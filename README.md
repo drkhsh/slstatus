@@ -47,4 +47,4 @@ For detailed information about coding style and restrictions see [CONTRIBUTING.m
 
 ## License
 
-See [LICENSE.md](LICENSE.md).
+See [LICENSE](LICENSE).
