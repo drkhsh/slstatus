@@ -18,6 +18,7 @@ char *battery_perc(const char *);
 char *cpu_perc(const char *);
 char *datetime(const char *);
 char *disk_perc(const char *);
+char *entropy(const char*);
 char *ram_perc(const char *);
 char *temp(const char *);
 char *vol_perc(const char *);

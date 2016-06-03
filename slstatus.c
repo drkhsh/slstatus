@@ -181,6 +181,29 @@ disk_perc(const char *mountpoint)
     return smprintf("%d%%", perc);
 }
 
+/* entropy available */
+char *
+entropy(const char *null)
+{
+    int entropy = 0;
+    FILE *fp;
+
+    /* open entropy file */
+    if (!(fp = fopen("/proc/sys/kernel/random/entropy_avail", "r"))) {
+        fprintf(stderr, "Could not open entropy file.\n");
+        return smprintf("n/a");
+    }
+
+    /* extract entropy */
+    fscanf(fp, "%d", &entropy);
+
+    /* close entropy file */
+    fclose(fp);
+
+    /* return entropy */
+    return smprintf("%d", entropy);
+}
+
 /* ram percentage */
 char *
 ram_perc(const char *null)
