@@ -2,8 +2,11 @@
 
 /* global libraries */
 #include <alsa/asoundlib.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
+#include <ifaddrs.h>
 #include <locale.h>
+#include <netdb.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +14,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
+#include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
 #include <X11/Xlib.h>
@@ -204,6 +208,47 @@ entropy(const char *null)
     return smprintf("%d", entropy);
 }
 
+/* ip address */
+char *
+ip(const char *interface)
+{
+    struct ifaddrs *ifaddr, *ifa;
+    int s;
+    char host[NI_MAXHOST];
+
+    /* check if getting ip address works */
+    if (getifaddrs(&ifaddr) == -1)
+    {
+        fprintf(stderr, "Error getting IP address.");
+        return smprintf("n/a");
+    }
+
+    /* get the ip address */
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+    {
+        if (ifa->ifa_addr == NULL)
+            continue;
+
+        s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+
+        if ((strcmp(ifa->ifa_name, interface) == 0) && (ifa->ifa_addr->sa_family == AF_INET))
+        {
+            if (s != 0)
+            {
+                fprintf(stderr, "Error getting IP address.");
+                return smprintf("n/a");
+            }
+            return smprintf("%s", host);
+        }
+    }
+
+    /* free the address */
+    freeifaddrs(ifaddr);
+
+    /* return n/a if nothing works */
+    return smprintf("n/a");
+}
+
 /* ram percentage */
 char *
 ram_perc(const char *null)
@@ -256,7 +301,6 @@ temp(const char *file)
     /* return temperature in degrees */
     return smprintf("%d°C", temperature / 1000);
 }
-
 
 /* alsa volume percentage */
 char *

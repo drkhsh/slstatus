@@ -17,6 +17,7 @@ static unsigned int update_interval = 1;
 - datetime (date and time) [argument: format]
 - disk_perc (disk usage in percent) [argument: mountpoint]
 - entropy (available entropy) [argument: NULL]
+- ip (ip address) [argument: interface]
 - ram_perc (ram usage in percent) [argument: NULL]
 - temp (temperature in degrees) [argument: temperature file]
 - vol_perc (alsa volume and mute status in percent) [argument: soundcard]
@@ -30,6 +31,5 @@ static const struct arg args[] = {
     { ram_perc,     "ram %3s | ",   NULL },
     { vol_perc,     "vol %4s | ",   "default" },
     { disk_perc,    "ssd %3s | ",   "/" },
-    { entropy,      "crypt %s | ",  NULL },
     { datetime,     "%s",           "%y-%m-%d %H:%M:%S" },
 };
