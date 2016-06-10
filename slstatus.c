@@ -273,6 +273,30 @@ ip(const char *interface)
     return smprintf("n/a");
 }
 
+/* ram free */
+char *
+ram_free(const char *null)
+{
+    long free;
+    FILE *fp;
+
+    /* open meminfo file */
+    if (!(fp = fopen("/proc/meminfo", "r"))) {
+        fprintf(stderr, "Error opening meminfo file.");
+        return smprintf("n/a");
+    }
+
+    /* read the values */
+    fscanf(fp, "MemTotal: %*d kB\n");
+    fscanf(fp, "MemFree: %ld kB\n", &free);
+
+    /* close meminfo file */
+    fclose(fp);
+
+    /* return free ram as string */
+    return smprintf("%f", (float)free / 1024 / 1024);
+}
+
 /* ram percentage */
 char *
 ram_perc(const char *null)
@@ -301,6 +325,58 @@ ram_perc(const char *null)
 
     /* return perc as string */
     return smprintf("%d%%", perc);
+}
+
+/* ram total */
+char *
+ram_total(const char *null)
+{
+    long total;
+    FILE *fp;
+
+    /* open meminfo file */
+    if (!(fp = fopen("/proc/meminfo", "r"))) {
+        fprintf(stderr, "Error opening meminfo file.");
+        return smprintf("n/a");
+    }
+
+    /* read the values */
+    fscanf(fp, "MemTotal: %ld kB\n", &total);
+
+    /* close meminfo file */
+    fclose(fp);
+
+    /* return total ram as string */
+    return smprintf("%f", (float)total / 1024 / 1024);
+}
+
+/* ram used */
+char *
+ram_used(const char *null)
+{
+    long free, total, buffers, cached, used;
+    FILE *fp;
+
+    /* open meminfo file */
+    if (!(fp = fopen("/proc/meminfo", "r"))) {
+        fprintf(stderr, "Error opening meminfo file.");
+        return smprintf("n/a");
+    }
+
+    /* read the values */
+    fscanf(fp, "MemTotal: %ld kB\n", &total);
+    fscanf(fp, "MemFree: %ld kB\n", &free);
+    fscanf(fp, "MemAvailable: %ld kB\nBuffers: %ld kB\n", &buffers, &buffers);
+    fscanf(fp, "Cached: %ld kB\n", &cached);
+
+    /* close meminfo file */
+    fclose(fp);
+
+    /* calculate used */
+    used = total - free - buffers - cached;
+
+    /* return used ram as string */
+    return smprintf("%f", (float)used / 1024 / 1024);
 }
 
 /* temperature */
