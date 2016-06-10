@@ -208,6 +208,29 @@ entropy(const char *null)
     return smprintf("%d", entropy);
 }
 
+/* hostname */
+char *
+hostname(const char *null)
+{
+    char *hostname = "";
+    FILE *fp;
+
+    /* open hostname file */
+    if (!(fp = fopen("/proc/sys/kernel/hostname", "r"))) {
+        fprintf(stderr, "Could not open hostname file.\n");
+        return smprintf("n/a");
+    }
+
+    /* extract hostname */
+    fscanf(fp, "%s", hostname);
+
+    /* close hostname file */
+    fclose(fp);
+
+    /* return entropy */
+    return smprintf("%s", hostname);
+}
+
 /* ip address */
 char *
 ip(const char *interface)

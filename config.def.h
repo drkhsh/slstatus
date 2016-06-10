@@ -17,6 +17,7 @@ static unsigned int update_interval = 1;
 - datetime (date and time) [argument: format]
 - disk_perc (disk usage in percent) [argument: mountpoint]
 - entropy (available entropy) [argument: NULL]
+- hostname [argument: NULL]
 - ip (ip address) [argument: interface]
 - ram_perc (ram usage in percent) [argument: NULL]
 - temp (temperature in degrees) [argument: temperature file]
