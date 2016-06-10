@@ -166,6 +166,22 @@ datetime(const char *timeformat)
     return ret;
 }
 
+/* disk free */
+char *
+disk_free(const char *mountpoint)
+{
+    struct statvfs fs;
+
+    /* try to open mountpoint */
+    if (statvfs(mountpoint, &fs) < 0) {
+        fprintf(stderr, "Could not get filesystem info.\n");
+        return smprintf("n/a");
+    }
+
+    /* return free */
+    return smprintf("%f", (float)fs.f_bsize * (float)fs.f_bfree / 1024 / 1024 / 1024);
+}
+
 /* disk usage percentage */
 char *
 disk_perc(const char *mountpoint)
@@ -180,10 +196,42 @@ disk_perc(const char *mountpoint)
     }
 
     /* calculate percent */
-    perc = 100 * (1.0f - ((float)fs.f_bavail / (float)fs.f_blocks));
+    perc = 100 * (1.0f - ((float)fs.f_bfree / (float)fs.f_blocks));
 
     /* return perc */
     return smprintf("%d%%", perc);
+}
+
+/* disk total */
+char *
+disk_total(const char *mountpoint)
+{
+    struct statvfs fs;
+
+    /* try to open mountpoint */
+    if (statvfs(mountpoint, &fs) < 0) {
+        fprintf(stderr, "Could not get filesystem info.\n");
+        return smprintf("n/a");
+    }
+
+    /* return total */
+    return smprintf("%f", (float)fs.f_bsize * (float)fs.f_blocks / 1024 / 1024 / 1024);
+}
+
+/* disk used */
+char *
+disk_used(const char *mountpoint)
+{
+    struct statvfs fs;
+
+    /* try to open mountpoint */
+    if (statvfs(mountpoint, &fs) < 0) {
+        fprintf(stderr, "Could not get filesystem info.\n");
+        return smprintf("n/a");
+    }
+
+    /* return used */
+    return smprintf("%f", (float)fs.f_bsize * ((float)fs.f_blocks - (float)fs.f_bfree) / 1024 / 1024 / 1024);
 }
 
 /* entropy available */
