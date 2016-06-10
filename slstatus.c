@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ifaddrs.h>
+#include <limits.h>
 #include <locale.h>
 #include <netdb.h>
 #include <stdarg.h>
@@ -212,7 +213,7 @@ entropy(const char *null)
 char *
 hostname(const char *null)
 {
-    char *hostname = "";
+    char hostname[HOST_NAME_MAX];
     FILE *fp;
 
     /* open hostname file */
@@ -222,7 +223,7 @@ hostname(const char *null)
     }
 
     /* extract hostname */
-    fscanf(fp, "%s", hostname);
+    fscanf(fp, "%s\n", hostname);
 
     /* close hostname file */
     fclose(fp);
