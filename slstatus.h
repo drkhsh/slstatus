@@ -19,6 +19,7 @@ char *cpu_perc(const char *);
 char *datetime(const char *);
 char *disk_perc(const char *);
 char *entropy(const char*);
+char *hostname(const char *);
 char *ip(const char *);
 char *ram_perc(const char *);
 char *temp(const char *);
