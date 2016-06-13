@@ -8,6 +8,7 @@
 #include <limits.h>
 #include <locale.h>
 #include <netdb.h>
+#include <pwd.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -257,6 +258,22 @@ entropy(const char *null)
     return smprintf("%d", entropy);
 }
 
+/* gid */
+char *
+gid(const char *null)
+{
+    gid_t gid;
+
+    if ((gid = getgid()) < 0) {
+        fprintf(stderr, "Could no get gid.");
+        return smprintf("n/a");
+    } else {
+        return smprintf("%d", gid);
+    }
+
+    return smprintf("n/a");
+}
+
 /* hostname */
 char *
 hostname(const char *null)
@@ -449,6 +466,51 @@ temp(const char *file)
     /* return temperature in degrees */
     return smprintf("%d°C", temperature / 1000);
 }
+
+/* username */
+char *
+username(const char *null)
+{
+    register struct passwd *pw;
+    register uid_t uid;
+
+    /* get the values */
+    uid = geteuid ();
+    pw = getpwuid (uid);
+
+    /* if it worked, return */
+    if (pw) {
+        return smprintf("%s", pw->pw_name);
+    }
+    else {
+        fprintf(stderr, "Could not get username.\n");
+        return smprintf("n/a");
+    }
+
+    return smprintf("n/a");
+}
+
+/* uid */
+char *
+uid(const char *null)
+{
+    register uid_t uid;
+
+    /* get the values */
+    uid = geteuid ();
+
+    /* if it worked, return */
+    if (uid) {
+        return smprintf("%d", uid);
+    }
+    else {
+        fprintf(stderr, "Could not get uid.\n");
+        return smprintf("n/a");
+    }
+
+    return smprintf("n/a");
+}
+
 
 /* alsa volume percentage */
 char *
