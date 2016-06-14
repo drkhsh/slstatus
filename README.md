@@ -5,17 +5,19 @@ slstatus
 
 The following information is included:
 
-- wifi percentage
 - battery percentage
-- cpu usage in percent
-- cpu temperature
-- ram usage in percent
-- alsa volume level in percent
-- disk usage
-- date
-- time
+- cpu usage (in percent)
+- date and time
+- disk numbers (free storage, percentage, total storage and used storage)
+- available entropy
+- hostname
+- ip addresses
+- ram numbers (free ram, percentage, total ram and used ram)
+- temperature
+- volume percentage (alsa)
+- wifi percentage
 
-Multiple entries (battery, wifi signal, ...) are supported and everything can be reordered and customized via a C header file (similar to DWM).
+Multiple entries per function are supported and everything can be reordered and customized via a C header file (similar to DWM).
 
 ![screenshot](screenshot.png)
 
