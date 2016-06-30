@@ -5,7 +5,7 @@ slstatus
 
 If you write a bash script that shows system information in WM_NAME, it executes a huge amount of external command (top, free etc.) every few seconds. This results in high system resource usage. slstatus solves this problem by only using C libraries and/or reading from files in sysfs / procfs.
 
-Looking at the LOC (lines of code) in the [Conky project](https://github.com/brndnmtthws/conky) is very interesting: **28.346 lines C++, 219 lines Python and 110 lines Lua**. slstatus currently has about 500 lines of clean, well commented C code and even includes additional possibilities as it can be customized and extended very easily. Configuring it by editing config.h (a C header file) is very secure and fast as no config files are parsed at runtime.
+Looking at the LOC (lines of code) in the [Conky project](https://github.com/brndnmtthws/conky) is very interesting: *28.346 lines C++, 219 lines Python and 110 lines Lua*. slstatus currently has about **500 lines of clean, well commented C code** and even includes additional possibilities as it can be customized and extended very easily. Configuring it by editing config.h (a C header file) is very secure and fast as no config files are parsed at runtime.
 
 The following information is included:
 
