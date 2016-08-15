@@ -453,6 +453,7 @@ ram_used(const char *null)
 char *
 run_command(const char* command)
 {
+    int good;
 	FILE *fp;
 	char buffer[64];
 
@@ -469,7 +470,15 @@ run_command(const char* command)
 	pclose(fp);
 
     /* add nullchar at the end */
-	buffer[strlen(buffer) - 1] = '\0';
+    for (int i = 0 ; i != sizeof(buffer) ; i++) {
+        if (buffer[i] == '\0') {
+            good = 1;
+            break;
+        }
+    }
+    if (good) {
+        buffer[strlen(buffer) - 1] = '\0';
+    }
 
     /* return the output */
 	return smprintf("%s", buffer);
