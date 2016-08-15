@@ -160,6 +160,7 @@ datetime(const char *timeformat)
     setlocale(LC_TIME, "");
     if(!strftime(buf, bufsize, timeformat, localtime(&tm))) {
         setlocale(LC_TIME, "C");
+        free(buf);
         fprintf(stderr, "Strftime failed.\n");
         return smprintf("n/a");
     }
