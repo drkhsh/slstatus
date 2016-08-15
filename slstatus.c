@@ -672,11 +672,7 @@ wifi_perc(const char *wificard)
 char *
 wifi_essid(const char *wificard)
 {
-    char *id = malloc(IW_ESSID_MAX_SIZE+1);
-    if (id == NULL) {
-        fprintf(stderr, "Cannot get ESSID.");
-        return smprintf("n/a");
-    }
+    char id[IW_ESSID_MAX_SIZE+1];
     int sockfd;
     struct iwreq wreq;
 
