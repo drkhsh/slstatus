@@ -689,6 +689,10 @@ main(void)
             argument = args[i];
             char *res = argument.func(argument.args);
             char *element = smprintf(argument.format, res);
+            if (element == NULL) {
+                element = smprintf("n/a");
+                fprintf(stderr, "Failed to format output.");
+            }
             strcat(status_string, element);
             free(res);
             free(element);
