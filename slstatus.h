@@ -35,3 +35,4 @@ char *uid(const char*);
 char *username(const char*);
 char *vol_perc(const char *);
 char *wifi_perc(const char *);
+char *wifi_essid(const char *);

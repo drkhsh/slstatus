@@ -32,7 +32,8 @@ static unsigned int update_interval = 1;
 - uid (uid of current user) [argument: NULL]
 - username (username of current user) [argument: NULL]
 - vol_perc (alsa volume and mute status in percent) [argument: soundcard]
-- wifi_perc (wifi signal in percent) [argument: wifi card interface name] */
+- wifi_perc (wifi signal in percent) [argument: wifi card interface name]
+- wifi_essid (wifi essid) [argument: wifi card interface name] */
 static const struct arg args[] = {
     /* function     format          argument */
     { wifi_perc,    "wifi %4s | ",  "wlp3s0" },

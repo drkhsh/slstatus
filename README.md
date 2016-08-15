@@ -20,7 +20,7 @@ The following information is included:
 - ram numbers (free ram, percentage, total ram and used ram)
 - temperature
 - volume percentage (alsa)
-- wifi percentage
+- wifi percentage and essid
 
 Multiple entries per function are supported and everything can be reordered and customized via the C header file config.h (similar to DWM).
 
