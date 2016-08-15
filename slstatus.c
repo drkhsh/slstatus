@@ -444,6 +444,32 @@ ram_used(const char *null)
     return smprintf("%f", (float)used / 1024 / 1024);
 }
 
+/* custom shell command */
+char *
+run_command(const char* command)
+{
+	FILE *fp;
+	char buffer[64];
+
+    /* try to open the command output */
+	if (!(fp = popen(command, "r"))) {
+        fprintf(stderr, "Could not get command output for: %s.\n", command);
+        return smprintf("n/a");
+    }
+
+    /* get command output text, save it to buffer */
+	fgets(buffer, sizeof(buffer)-1, fp);
+
+    /* close it again */
+	pclose(fp);
+
+    /* add nullchar at the end */
+	buffer[strlen(buffer) - 1] = '\0';
+
+    /* return the output */
+	return smprintf("%s", buffer);
+}
+
 /* temperature */
 char *
 temp(const char *file)

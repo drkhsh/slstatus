@@ -27,6 +27,7 @@ static unsigned int update_interval = 1;
 - ram_perc (ram usage in percent) [argument: NULL]
 - ram_total (ram usage in percent) [argument: NULL]
 - ram_used (ram usage in percent) [argument: NULL]
+- run_command (run custom shell command) [argument: command]
 - temp (temperature in degrees) [argument: temperature file]
 - uid (uid of current user) [argument: NULL]
 - username (username of current user) [argument: NULL]
