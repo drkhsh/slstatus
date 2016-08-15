@@ -11,6 +11,7 @@ The following information is included:
 
 - battery percentage
 - cpu usage (in percent)
+- custom shell commands
 - date and time
 - disk numbers (free storage, percentage, total storage and used storage)
 - available entropy
