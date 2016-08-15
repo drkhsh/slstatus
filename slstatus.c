@@ -150,6 +150,10 @@ datetime(const char *timeformat)
     time_t tm;
     size_t bufsize = 64;
     char *buf = malloc(bufsize);
+    if (buf == NULL) {
+        fprintf(stderr, "Failed to get date/time");
+        return smprintf("n/a");
+    }
 
     /* get time in format */
     time(&tm);
@@ -544,36 +548,52 @@ vol_perc(const char *soundcard)
 {
     int mute = 0;
     long vol = 0, max = 0, min = 0;
-
-    /* get volume from alsa */
     snd_mixer_t *handle;
     snd_mixer_elem_t *pcm_mixer, *mas_mixer;
     snd_mixer_selem_id_t *vol_info, *mute_info;
+
+    /* open everything */
     snd_mixer_open(&handle, 0);
     snd_mixer_attach(handle, soundcard);
     snd_mixer_selem_register(handle, NULL, NULL);
     snd_mixer_load(handle);
+
+    /* prepare everything */
     snd_mixer_selem_id_malloc(&vol_info);
     snd_mixer_selem_id_malloc(&mute_info);
+    /* check */
+    if (vol_info == NULL || mute_info == NULL) {
+        fprintf(stderr, "Could not get alsa volume");
+        return smprintf("n/a");
+    }
     snd_mixer_selem_id_set_name(vol_info, channel);
     snd_mixer_selem_id_set_name(mute_info, channel);
     pcm_mixer = snd_mixer_find_selem(handle, vol_info);
     mas_mixer = snd_mixer_find_selem(handle, mute_info);
+
+    /* get the info */
     snd_mixer_selem_get_playback_volume_range((snd_mixer_elem_t *)pcm_mixer, &min, &max);
     snd_mixer_selem_get_playback_volume((snd_mixer_elem_t *)pcm_mixer, SND_MIXER_SCHN_MONO, &vol);
     snd_mixer_selem_get_playback_switch(mas_mixer, SND_MIXER_SCHN_MONO, &mute);
-    if (vol_info)
+
+    /* clean up */
+    if (vol_info) {
         snd_mixer_selem_id_free(vol_info);
-    if (mute_info)
+    }
+    if (mute_info) {
         snd_mixer_selem_id_free(mute_info);
-    if (handle)
+    }
+    if (handle) {
         snd_mixer_close(handle);
+    }
 
     /* return the string (mute) */
-    if (!mute)
+    if (!mute) {
         return smprintf("mute");
-    else
+    }
+    else {
         return smprintf("%d%%", (vol * 100) / max);
+    }
 }
 
 /* wifi percentage */

@@ -29,6 +29,7 @@ char *ram_free(const char *);
 char *ram_perc(const char *);
 char *ram_used(const char *);
 char *ram_total(const char *);
+char *run_command(const char *);
 char *temp(const char *);
 char *uid(const char*);
 char *username(const char*);
