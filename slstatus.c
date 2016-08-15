@@ -359,7 +359,6 @@ ram_free(const char *null)
     }
 
     /* read the values */
-    fscanf(fp, "MemTotal: %*d kB\n");
     fscanf(fp, "MemFree: %ld kB\n", &free);
 
     /* close meminfo file */
