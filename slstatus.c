@@ -658,7 +658,7 @@ wifi_perc(const char *wificard)
 
 /* main function */
 int
-main()
+main(void)
 {
     char status_string[1024];
     struct arg argument;
