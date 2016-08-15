@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <ifaddrs.h>
 #include <limits.h>
+#include <linux/wireless.h>
 #include <locale.h>
 #include <netdb.h>
 #include <pwd.h>
@@ -13,10 +14,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 #include <X11/Xlib.h>
@@ -664,6 +666,45 @@ wifi_perc(const char *wificard)
 
     /* return strength in percent */
     return smprintf("%d%%", strength);
+}
+
+/* wifi essid */
+char *
+wifi_essid(const char *wificard)
+{
+    char *id = malloc(IW_ESSID_MAX_SIZE+1);
+    if (id == NULL) {
+        fprintf(stderr, "Cannot get ESSID.");
+        return smprintf("n/a");
+    }
+    int sockfd;
+    struct iwreq wreq;
+
+    /* prepare */
+    memset(&wreq, 0, sizeof(struct iwreq));
+    wreq.u.essid.length = IW_ESSID_MAX_SIZE+1;
+
+    /* set the interface */
+    sprintf(wreq.ifr_name, wificard);
+
+    /* check */
+    if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+        fprintf(stderr, "Cannot open socket for interface: %s\n", wificard);
+        return smprintf("n/a");
+    }
+    wreq.u.essid.pointer = id;
+    if (ioctl(sockfd,SIOCGIWESSID, &wreq) == -1) {
+        fprintf(stderr, "Get ESSID ioctl failed for interface %s\n", wificard);
+        return smprintf("n/a");
+    }
+
+    /* return the essid */
+    if (strcmp((char *)wreq.u.essid.pointer, "") == 0) {
+        return smprintf("n/a");
+    }
+    else {
+        return smprintf("%s", (char *)wreq.u.essid.pointer);
+    }
 }
 
 /* main function */
