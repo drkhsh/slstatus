@@ -38,7 +38,7 @@ Put the following code in your ~/.xinitrc (or similar):
 
 ```
 while true; do
-    slstatus
+	slstatus
 done &
 ```
 

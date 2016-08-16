@@ -6,9 +6,9 @@ static Display *dpy;
 /* statusbar configuration type and struct */
 typedef char *(*op_fun) (const char *);
 struct arg {
-    op_fun func;
-    const char *format;
-    const char *args;
+	op_fun func;
+	const char *format;
+	const char *args;
 };
 
 /* functions */
