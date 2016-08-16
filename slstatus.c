@@ -75,7 +75,7 @@ battery_perc(const char *battery)
 
 	/* open battery now file */
 	if (!(fp = fopen(batterynowfile, "r"))) {
-		fprintf(stderr, "Error opening battery file.%s", batterynowfile);
+		fprintf(stderr, "Error opening battery file: %s.\n", batterynowfile);
 		return smprintf("n/a");
 	}
 
@@ -87,7 +87,7 @@ battery_perc(const char *battery)
 
 	/* open battery full file */
 	if (!(fp = fopen(batteryfullfile, "r"))) {
-		fprintf(stderr, "Error opening battery file.");
+		fprintf(stderr, "Error opening battery file.\n");
 		return smprintf("n/a");
 	}
 
@@ -114,7 +114,7 @@ cpu_perc(const char *null)
 
 	/* open stat file */
 	if (!(fp = fopen("/proc/stat","r"))) {
-		fprintf(stderr, "Error opening stat file.");
+		fprintf(stderr, "Error opening stat file.\n");
 		return smprintf("n/a");
 	}
 
@@ -129,7 +129,7 @@ cpu_perc(const char *null)
 
 	/* open stat file */
 	if (!(fp = fopen("/proc/stat","r"))) {
-		fprintf(stderr, "Error opening stat file.");
+		fprintf(stderr, "Error opening stat file.\n");
 		return smprintf("n/a");
 	}
 
@@ -154,7 +154,7 @@ datetime(const char *timeformat)
 	size_t bufsize = 64;
 	char *buf = malloc(bufsize);
 	if (buf == NULL) {
-		fprintf(stderr, "Failed to get date/time");
+		fprintf(stderr, "Failed to get date/time.\n");
 		return smprintf("n/a");
 	}
 
@@ -273,7 +273,7 @@ gid(const char *null)
 	gid_t gid;
 
 	if ((gid = getgid()) < 0) {
-		fprintf(stderr, "Could no get gid.");
+		fprintf(stderr, "Could no get gid.\n");
 		return smprintf("n/a");
 	} else {
 		return smprintf("%d", gid);
@@ -315,7 +315,7 @@ ip(const char *interface)
 
 	/* check if getting ip address works */
 	if (getifaddrs(&ifaddr) == -1) {
-		fprintf(stderr, "Error getting IP address.");
+		fprintf(stderr, "Error getting IP address.\n");
 		return smprintf("n/a");
 	}
 
@@ -329,7 +329,7 @@ ip(const char *interface)
 
 		if ((strcmp(ifa->ifa_name, interface) == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
 			if (s != 0) {
-				fprintf(stderr, "Error getting IP address.");
+				fprintf(stderr, "Error getting IP address.\n");
 				return smprintf("n/a");
 			}
 			return smprintf("%s", host);
@@ -352,7 +352,7 @@ ram_free(const char *null)
 
 	/* open meminfo file */
 	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.");
+		fprintf(stderr, "Error opening meminfo file.\n");
 		return smprintf("n/a");
 	}
 
@@ -376,7 +376,7 @@ ram_perc(const char *null)
 
 	/* open meminfo file */
 	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.");
+		fprintf(stderr, "Error opening meminfo file.\n");
 		return smprintf("n/a");
 	}
 
@@ -405,7 +405,7 @@ ram_total(const char *null)
 
 	/* open meminfo file */
 	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.");
+		fprintf(stderr, "Error opening meminfo file.\n");
 		return smprintf("n/a");
 	}
 
@@ -428,7 +428,7 @@ ram_used(const char *null)
 
 	/* open meminfo file */
 	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.");
+		fprintf(stderr, "Error opening meminfo file.\n");
 		return smprintf("n/a");
 	}
 
@@ -570,7 +570,7 @@ vol_perc(const char *soundcard)
 	snd_mixer_selem_id_malloc(&mute_info);
 	/* check */
 	if (vol_info == NULL || mute_info == NULL) {
-		fprintf(stderr, "Could not get alsa volume");
+		fprintf(stderr, "Could not get alsa volume.\n");
 		return smprintf("n/a");
 	}
 	snd_mixer_selem_id_set_name(vol_info, channel);
@@ -623,7 +623,7 @@ wifi_perc(const char *wificard)
 
 	/* open wifi file */
 	if(!(fp = fopen(path, "r"))) {
-		fprintf(stderr, "Error opening wifi operstate file.");
+		fprintf(stderr, "Error opening wifi operstate file.\n");
 		return smprintf("n/a");
 	}
 
@@ -640,7 +640,7 @@ wifi_perc(const char *wificard)
 
 	/* open wifi file */
 	if (!(fp = fopen("/proc/net/wireless", "r"))) {
-		fprintf(stderr, "Error opening wireless file.");
+		fprintf(stderr, "Error opening wireless file.\n");
 		return smprintf("n/a");
 	}
 
@@ -721,7 +721,7 @@ main(void)
 			char *element = smprintf(argument.format, res);
 			if (element == NULL) {
 				element = smprintf("n/a");
-				fprintf(stderr, "Failed to format output.");
+				fprintf(stderr, "Failed to format output.\n");
 			}
 			strcat(status_string, element);
 			free(res);
