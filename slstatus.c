@@ -342,6 +342,22 @@ ip(const char *interface)
 	return smprintf(unknowntext);
 }
 
+/* load avg */
+char *
+load_avg(const char *null)
+{
+	double avgs[3];
+
+	/* try to get load avg */
+	if (getloadavg(avgs, 3) < 0) {
+		fprintf(stderr, "Error getting load avg.\n");
+		return smprintf(unknowntext);
+	}
+
+	/* return it */
+	return smprintf("%.2f %.2f %.2f", avgs[0], avgs[1], avgs[2]);
+}
+
 /* ram free */
 char *
 ram_free(const char *null)

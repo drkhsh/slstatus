@@ -26,6 +26,7 @@ static const char unknowntext[] = "n/a";
 - gid (gid of current user) [argument: NULL]
 - hostname [argument: NULL]
 - ip (ip address) [argument: interface]
+- load_avg (load average) [argument: NULL]
 - ram_free (ram usage in percent) [argument: NULL]
 - ram_perc (ram usage in percent) [argument: NULL]
 - ram_total (ram usage in percent) [argument: NULL]
