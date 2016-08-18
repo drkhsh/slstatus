@@ -76,7 +76,7 @@ battery_perc(const char *battery)
 	/* open battery now file */
 	if (!(fp = fopen(batterynowfile, "r"))) {
 		fprintf(stderr, "Error opening battery file: %s.\n", batterynowfile);
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* read value */
@@ -88,7 +88,7 @@ battery_perc(const char *battery)
 	/* open battery full file */
 	if (!(fp = fopen(batteryfullfile, "r"))) {
 		fprintf(stderr, "Error opening battery file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* read value */
@@ -115,7 +115,7 @@ cpu_perc(const char *null)
 	/* open stat file */
 	if (!(fp = fopen("/proc/stat","r"))) {
 		fprintf(stderr, "Error opening stat file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* read values */
@@ -130,7 +130,7 @@ cpu_perc(const char *null)
 	/* open stat file */
 	if (!(fp = fopen("/proc/stat","r"))) {
 		fprintf(stderr, "Error opening stat file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* read values */
@@ -155,7 +155,7 @@ datetime(const char *timeformat)
 	char *buf = malloc(bufsize);
 	if (buf == NULL) {
 		fprintf(stderr, "Failed to get date/time.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* get time in format */
@@ -165,7 +165,7 @@ datetime(const char *timeformat)
 		setlocale(LC_TIME, "C");
 		free(buf);
 		fprintf(stderr, "Strftime failed.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	setlocale(LC_TIME, "C");
@@ -184,7 +184,7 @@ disk_free(const char *mountpoint)
 	/* try to open mountpoint */
 	if (statvfs(mountpoint, &fs) < 0) {
 		fprintf(stderr, "Could not get filesystem info.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* return free */
@@ -201,7 +201,7 @@ disk_perc(const char *mountpoint)
 	/* try to open mountpoint */
 	if (statvfs(mountpoint, &fs) < 0) {
 		fprintf(stderr, "Could not get filesystem info.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* calculate percent */
@@ -220,7 +220,7 @@ disk_total(const char *mountpoint)
 	/* try to open mountpoint */
 	if (statvfs(mountpoint, &fs) < 0) {
 		fprintf(stderr, "Could not get filesystem info.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* return total */
@@ -236,7 +236,7 @@ disk_used(const char *mountpoint)
 	/* try to open mountpoint */
 	if (statvfs(mountpoint, &fs) < 0) {
 		fprintf(stderr, "Could not get filesystem info.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* return used */
@@ -253,7 +253,7 @@ entropy(const char *null)
 	/* open entropy file */
 	if (!(fp = fopen("/proc/sys/kernel/random/entropy_avail", "r"))) {
 		fprintf(stderr, "Could not open entropy file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* extract entropy */
@@ -274,12 +274,12 @@ gid(const char *null)
 
 	if ((gid = getgid()) < 0) {
 		fprintf(stderr, "Could no get gid.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	} else {
 		return smprintf("%d", gid);
 	}
 
-	return smprintf("n/a");
+	return smprintf(unknowntext);
 }
 
 /* hostname */
@@ -292,7 +292,7 @@ hostname(const char *null)
 	/* open hostname file */
 	if (!(fp = fopen("/proc/sys/kernel/hostname", "r"))) {
 		fprintf(stderr, "Could not open hostname file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* extract hostname */
@@ -316,7 +316,7 @@ ip(const char *interface)
 	/* check if getting ip address works */
 	if (getifaddrs(&ifaddr) == -1) {
 		fprintf(stderr, "Error getting IP address.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* get the ip address */
@@ -330,7 +330,7 @@ ip(const char *interface)
 		if ((strcmp(ifa->ifa_name, interface) == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
 			if (s != 0) {
 				fprintf(stderr, "Error getting IP address.\n");
-				return smprintf("n/a");
+				return smprintf(unknowntext);
 			}
 			return smprintf("%s", host);
 		}
@@ -339,8 +339,7 @@ ip(const char *interface)
 	/* free the address */
 	freeifaddrs(ifaddr);
 
-	/* return n/a if nothing works */
-	return smprintf("n/a");
+	return smprintf(unknowntext);
 }
 
 /* ram free */
@@ -353,7 +352,7 @@ ram_free(const char *null)
 	/* open meminfo file */
 	if (!(fp = fopen("/proc/meminfo", "r"))) {
 		fprintf(stderr, "Error opening meminfo file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* read the values */
@@ -377,7 +376,7 @@ ram_perc(const char *null)
 	/* open meminfo file */
 	if (!(fp = fopen("/proc/meminfo", "r"))) {
 		fprintf(stderr, "Error opening meminfo file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* read the values */
@@ -406,7 +405,7 @@ ram_total(const char *null)
 	/* open meminfo file */
 	if (!(fp = fopen("/proc/meminfo", "r"))) {
 		fprintf(stderr, "Error opening meminfo file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* read the values */
@@ -429,7 +428,7 @@ ram_used(const char *null)
 	/* open meminfo file */
 	if (!(fp = fopen("/proc/meminfo", "r"))) {
 		fprintf(stderr, "Error opening meminfo file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* read the values */
@@ -459,7 +458,7 @@ run_command(const char* command)
 	/* try to open the command output */
 	if (!(fp = popen(command, "r"))) {
 		fprintf(stderr, "Could not get command output for: %s.\n", command);
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* get command output text, save it to buffer */
@@ -493,7 +492,7 @@ temp(const char *file)
 	/* open temperature file */
 	if (!(fp = fopen(file, "r"))) {
 		fprintf(stderr, "Could not open temperature file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* extract temperature */
@@ -522,10 +521,10 @@ username(const char *null)
 		return smprintf("%s", pw->pw_name);
 	} else {
 		fprintf(stderr, "Could not get username.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
-	return smprintf("n/a");
+	return smprintf(unknowntext);
 }
 
 /* uid */
@@ -542,10 +541,10 @@ uid(const char *null)
 		return smprintf("%d", uid);
 	} else {
 		fprintf(stderr, "Could not get uid.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
-	return smprintf("n/a");
+	return smprintf(unknowntext);
 }
 
 
@@ -571,7 +570,7 @@ vol_perc(const char *soundcard)
 	/* check */
 	if (vol_info == NULL || mute_info == NULL) {
 		fprintf(stderr, "Could not get alsa volume.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 	snd_mixer_selem_id_set_name(vol_info, channel);
 	snd_mixer_selem_id_set_name(mute_info, channel);
@@ -624,7 +623,7 @@ wifi_perc(const char *wificard)
 	/* open wifi file */
 	if(!(fp = fopen(path, "r"))) {
 		fprintf(stderr, "Error opening wifi operstate file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* read the status */
@@ -635,13 +634,13 @@ wifi_perc(const char *wificard)
 
 	/* check if interface down */
 	if(strcmp(status, "up\n") != 0) {
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* open wifi file */
 	if (!(fp = fopen("/proc/net/wireless", "r"))) {
 		fprintf(stderr, "Error opening wireless file.\n");
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* extract the signal strength */
@@ -680,17 +679,17 @@ wifi_essid(const char *wificard)
 	/* check */
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
 		fprintf(stderr, "Cannot open socket for interface: %s\n", wificard);
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 	wreq.u.essid.pointer = id;
 	if (ioctl(sockfd,SIOCGIWESSID, &wreq) == -1) {
 		fprintf(stderr, "Get ESSID ioctl failed for interface %s\n", wificard);
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	}
 
 	/* return the essid */
 	if (strcmp((char *)wreq.u.essid.pointer, "") == 0) {
-		return smprintf("n/a");
+		return smprintf(unknowntext);
 	} else {
 		return smprintf("%s", (char *)wreq.u.essid.pointer);
 	}
@@ -720,7 +719,7 @@ main(void)
 			char *res = argument.func(argument.args);
 			char *element = smprintf(argument.format, res);
 			if (element == NULL) {
-				element = smprintf("n/a");
+				element = smprintf(unknowntext);
 				fprintf(stderr, "Failed to format output.\n");
 			}
 			strcat(status_string, element);
