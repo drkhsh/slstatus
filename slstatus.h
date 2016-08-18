@@ -25,6 +25,7 @@ char *entropy(const char*);
 char *gid(const char*);
 char *hostname(const char *);
 char *ip(const char *);
+char *load_avg(const char *);
 char *ram_free(const char *);
 char *ram_perc(const char *);
 char *ram_used(const char *);

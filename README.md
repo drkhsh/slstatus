@@ -17,6 +17,7 @@ The following information is included:
 - available entropy
 - hostname
 - ip addresses
+- load avg
 - ram numbers (free ram, percentage, total ram and used ram)
 - temperature
 - volume percentage (alsa)
