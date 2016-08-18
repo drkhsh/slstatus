@@ -15,14 +15,15 @@ The following information is included:
 - date and time
 - disk numbers (free storage, percentage, total storage and used storage)
 - available entropy
+- username/gid/uid of current user
 - hostname
 - ip addresses
-- load avg
+- load average
 - ram numbers (free ram, percentage, total ram and used ram)
 - temperature
 - uptime
-- volume percentage (alsa)
-- wifi percentage and essid
+- volume percentage + mute status (alsa)
+- wifi signal percentage and essid
 
 Multiple entries per function are supported and everything can be reordered and customized via the C header file config.h (similar to DWM).
 
