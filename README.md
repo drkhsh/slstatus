@@ -27,8 +27,6 @@ The following information is included:
 
 Multiple entries per function are supported and everything can be reordered and customized via the C header file config.h (similar to DWM).
 
-![screenshot](screenshot.png)
-
 ## Usage
 
 ### Installation
