@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <sys/socket.h>
+#include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
@@ -519,6 +520,23 @@ temp(const char *file)
 
 	/* return temperature in degrees */
 	return smprintf("%d°C", temperature / 1000);
+}
+
+/* uptime */
+char *
+uptime(const char *null)
+{
+	struct sysinfo info;
+	int hours = 0;
+	int minutes = 0;
+
+	/* get info */
+	sysinfo(&info);
+	hours = info.uptime / 3600;
+	minutes = (info.uptime - hours * 3600 ) / 60;
+
+	/* return it */
+	return smprintf("%dh %dm", hours, minutes);
 }
 
 /* username */

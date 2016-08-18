@@ -33,6 +33,7 @@ char *ram_total(const char *);
 char *run_command(const char *);
 char *temp(const char *);
 char *uid(const char*);
+char *uptime(const char*);
 char *username(const char*);
 char *vol_perc(const char *);
 char *wifi_perc(const char *);
