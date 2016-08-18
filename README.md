@@ -20,6 +20,7 @@ The following information is included:
 - load avg
 - ram numbers (free ram, percentage, total ram and used ram)
 - temperature
+- uptime
 - volume percentage (alsa)
 - wifi percentage and essid
 

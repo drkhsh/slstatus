@@ -34,6 +34,7 @@ static const char unknowntext[] = "n/a";
 - run_command (run custom shell command) [argument: command]
 - temp (temperature in degrees) [argument: temperature file]
 - uid (uid of current user) [argument: NULL]
+- uptime (uptime) [argument: NULL]
 - username (username of current user) [argument: NULL]
 - vol_perc (alsa volume and mute status in percent) [argument: soundcard]
 - wifi_perc (wifi signal in percent) [argument: wifi card interface name]
