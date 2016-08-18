@@ -24,8 +24,46 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 
-/* local headers */
-#include "slstatus.h"
+/* statusbar configuration type and struct */
+typedef char *(*op_fun) (const char *);
+struct arg {
+	op_fun func;
+	const char *format;
+	const char *args;
+};
+
+/* function declarations */
+void setstatus(const char *str);
+char *smprintf(const char *fmt, ...);
+char *battery_perc(const char *battery);
+char *cpu_perc(const char *null);
+char *datetime(const char *timeformat);
+char *disk_free(const char *mountpoint);
+char *disk_perc(const char *mountpoint);
+char *disk_total(const char *mountpoint);
+char *disk_used(const char *mountpoint);
+char *entropy(const char *null);
+char *gid(const char *null);
+char *hostname(const char *null);
+char *ip(const char *interface);
+char *load_avg(const char *null);
+char *ram_free(const char *null);
+char *ram_perc(const char *null);
+char *ram_used(const char *null);
+char *ram_total(const char *null);
+char *run_command(const char *command);
+char *temp(const char *file);
+char *uid(const char *null);
+char *uptime(const char *null);
+char *username(const char *null);
+char *vol_perc(const char *soundcard);
+char *wifi_perc(const char *wificard);
+char *wifi_essid(const char *wificard);
+
+/* global variables */
+static Display *dpy;
+
+/* configuration header */
 #include "config.h"
 
 /* set statusbar */
