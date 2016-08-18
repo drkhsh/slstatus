@@ -11,6 +11,9 @@ static const char batteryfull[]     = "energy_full_design";
 /* bar update interval in seconds (smallest value = 1) */
 static unsigned int update_interval = 1;
 
+/* text to show if no value can be retrieved */
+static const char unknowntext[] = "n/a";
+
 /* statusbar
 - battery_perc (battery percentage) [argument: battery name]
 - cpu_perc (cpu usage in percent) [argument: NULL]
