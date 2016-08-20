@@ -89,9 +89,8 @@ smprintf(const char *fmt, ...)
 	char *ret = NULL;
 
 	va_start(fmtargs, fmt);
-	if (vasprintf(&ret, fmt, fmtargs) < 0) {
+	if (vasprintf(&ret, fmt, fmtargs) < 0)
 		return NULL;
-	}
 	va_end(fmtargs);
 
 	return ret;
@@ -366,9 +365,8 @@ ip(const char *interface)
 
 	/* get the ip address */
 	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-		if (ifa->ifa_addr == NULL) {
+		if (ifa->ifa_addr == NULL)
 			continue;
-		}
 
 		s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 
@@ -535,9 +533,8 @@ run_command(const char* command)
 			break;
 		}
 	}
-	if (good) {
+	if (good)
 		buffer[strlen(buffer) - 1] = '\0';
-	}
 
 	/* return the output */
 	return smprintf("%s", buffer);
@@ -595,9 +592,9 @@ username(const char *null)
 	pw = getpwuid(uid);
 
 	/* if it worked, return */
-	if (pw) {
+	if (pw)
 		return smprintf("%s", pw->pw_name);
-	} else {
+	else {
 		fprintf(stderr, "Could not get username.\n");
 		return smprintf(unknowntext);
 	}
@@ -615,9 +612,9 @@ uid(const char *null)
 	uid = geteuid();
 
 	/* if it worked, return */
-	if (uid) {
+	if (uid)
 		return smprintf("%d", uid);
-	} else {
+	else {
 		fprintf(stderr, "Could not get uid.\n");
 		return smprintf(unknowntext);
 	}
@@ -661,22 +658,18 @@ vol_perc(const char *soundcard)
 	snd_mixer_selem_get_playback_switch(mas_mixer, SND_MIXER_SCHN_MONO, &mute);
 
 	/* clean up */
-	if (vol_info) {
+	if (vol_info)
 		snd_mixer_selem_id_free(vol_info);
-	}
-	if (mute_info) {
+	if (mute_info)
 		snd_mixer_selem_id_free(mute_info);
-	}
-	if (handle) {
+	if (handle)
 		snd_mixer_close(handle);
-	}
 
 	/* return the string (mute) */
-	if (!mute) {
+	if (!mute)
 		return smprintf("mute");
-	} else {
+	else
 		return smprintf("%d%%", (vol * 100) / max);
-	}
 }
 
 /* wifi percentage */
@@ -711,9 +704,8 @@ wifi_perc(const char *wificard)
 	fclose(fp);
 
 	/* check if interface down */
-	if(strcmp(status, "up\n") != 0) {
+	if(strcmp(status, "up\n") != 0)
 		return smprintf(unknowntext);
-	}
 
 	/* open wifi file */
 	if (!(fp = fopen("/proc/net/wireless", "r"))) {
@@ -766,11 +758,10 @@ wifi_essid(const char *wificard)
 	}
 
 	/* return the essid */
-	if (strcmp((char *)wreq.u.essid.pointer, "") == 0) {
+	if (strcmp((char *)wreq.u.essid.pointer, "") == 0)
 		return smprintf(unknowntext);
-	} else {
+	else
 		return smprintf("%s", (char *)wreq.u.essid.pointer);
-	}
 }
 
 /* main function */
