@@ -24,6 +24,12 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 
+#undef strlcat
+#undef strlcpy
+
+#include "strlcat.h"
+#include "strlcpy.h"
+
 /* statusbar configuration type and struct */
 typedef char *(*op_fun) (const char *);
 struct arg {
@@ -101,16 +107,16 @@ battery_perc(const char *battery)
 	FILE *fp;
 
 	/* generate battery nowfile path */
-	strcat(batterynowfile, batterypath);
-	strcat(batterynowfile, battery);
-	strcat(batterynowfile, "/");
-	strcat(batterynowfile, batterynow);
+	strlcat(batterynowfile, batterypath, sizeof(batterynowfile));
+	strlcat(batterynowfile, battery, sizeof(batterynowfile));
+	strlcat(batterynowfile, "/", sizeof(batterynowfile));
+	strlcat(batterynowfile, batterynow, sizeof(batterynowfile));
 
 	/* generate battery fullfile path */
-	strcat(batteryfullfile, batterypath);
-	strcat(batteryfullfile, battery);
-	strcat(batteryfullfile, "/");
-	strcat(batteryfullfile, batteryfull);
+	strlcat(batteryfullfile, batterypath, sizeof(batteryfullfile));
+	strlcat(batteryfullfile, battery, sizeof(batteryfullfile));
+	strlcat(batteryfullfile, "/", sizeof(batteryfullfile));
+	strlcat(batteryfullfile, batteryfull, sizeof(batteryfullfile));
 
 	/* open battery now file */
 	if (!(fp = fopen(batterynowfile, "r"))) {
@@ -688,9 +694,9 @@ wifi_perc(const char *wificard)
 
 	/* generate the path name */
 	memset(path, 0, sizeof path);
-	strcat(path, "/sys/class/net/");
-	strcat(path, wificard);
-	strcat(path, "/operstate");
+	strlcat(path, "/sys/class/net/", sizeof(path));
+	strlcat(path, wificard, sizeof(path));
+	strlcat(path, "/operstate", sizeof(path));
 
 	/* open wifi file */
 	if(!(fp = fopen(path, "r"))) {
@@ -716,8 +722,8 @@ wifi_perc(const char *wificard)
 	}
 
 	/* extract the signal strength */
-	strcpy(needle, wificard);
-	strcat(needle, ":");
+	strlcpy(needle, wificard, sizeof(needle));
+	strlcat(needle, ":", sizeof(needle));
 	fgets(buf, bufsize, fp);
 	fgets(buf, bufsize, fp);
 	fgets(buf, bufsize, fp);
@@ -794,7 +800,7 @@ main(void)
 				element = smprintf(unknowntext);
 				fprintf(stderr, "Failed to format output.\n");
 			}
-			strcat(status_string, element);
+			strlcat(status_string, element, sizeof(status_string));
 			free(res);
 			free(element);
 		}
