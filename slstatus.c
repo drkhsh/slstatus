@@ -36,38 +36,38 @@ struct arg {
 	const char *args;
 };
 
-void setstatus(const char *);
-char *smprintf(const char *, ...);
-char *battery_perc(const char *);
-char *cpu_perc(const char *);
-char *datetime(const char *);
-char *disk_free(const char *);
-char *disk_perc(const char *);
-char *disk_total(const char *);
-char *disk_used(const char *);
-char *entropy(const char *);
-char *gid(const char *);
-char *hostname(const char *);
-char *ip(const char *);
-char *load_avg(const char *);
-char *ram_free(const char *);
-char *ram_perc(const char *);
-char *ram_used(const char *);
-char *ram_total(const char *);
-char *run_command(const char *);
-char *temp(const char *);
-char *uid(const char *);
-char *uptime(const char *);
-char *username(const char *);
-char *vol_perc(const char *);
-char *wifi_perc(const char *);
-char *wifi_essid(const char *);
+static void setstatus(const char *);
+static char *smprintf(const char *, ...);
+static char *battery_perc(const char *);
+static char *cpu_perc(const char *);
+static char *datetime(const char *);
+static char *disk_free(const char *);
+static char *disk_perc(const char *);
+static char *disk_total(const char *);
+static char *disk_used(const char *);
+static char *entropy(const char *);
+static char *gid(const char *);
+static char *hostname(const char *);
+static char *ip(const char *);
+static char *load_avg(const char *);
+static char *ram_free(const char *);
+static char *ram_perc(const char *);
+static char *ram_used(const char *);
+static char *ram_total(const char *);
+static char *run_command(const char *);
+static char *temp(const char *);
+static char *uid(const char *);
+static char *uptime(const char *);
+static char *username(const char *);
+static char *vol_perc(const char *);
+static char *wifi_perc(const char *);
+static char *wifi_essid(const char *);
 
 static Display *dpy;
 
 #include "config.h"
 
-void
+static void
 setstatus(const char *str)
 {
 	/* set WM_NAME via X11 */
@@ -75,7 +75,7 @@ setstatus(const char *str)
 	XSync(dpy, False);
 }
 
-char *
+static char *
 smprintf(const char *fmt, ...)
 {
 	va_list fmtargs;
@@ -89,7 +89,7 @@ smprintf(const char *fmt, ...)
 	return ret;
 }
 
-char *
+static char *
 battery_perc(const char *battery)
 {
 	int now, full, perc;
@@ -128,7 +128,7 @@ battery_perc(const char *battery)
 	return smprintf("%d%%", perc);
 }
 
-char *
+static char *
 cpu_perc(const char *null)
 {
 	int perc;
@@ -157,7 +157,7 @@ cpu_perc(const char *null)
 	return smprintf("%d%%", perc);
 }
 
-char *
+static char *
 datetime(const char *timeformat)
 {
 	time_t tm;
@@ -183,7 +183,7 @@ datetime(const char *timeformat)
 	return ret;
 }
 
-char *
+static char *
 disk_free(const char *mountpoint)
 {
 	struct statvfs fs;
@@ -195,7 +195,7 @@ disk_free(const char *mountpoint)
 	return smprintf("%f", (float)fs.f_bsize * (float)fs.f_bfree / 1024 / 1024 / 1024);
 }
 
-char *
+static char *
 disk_perc(const char *mountpoint)
 {
 	int perc = 0;
@@ -210,7 +210,7 @@ disk_perc(const char *mountpoint)
 	return smprintf("%d%%", perc);
 }
 
-char *
+static char *
 disk_total(const char *mountpoint)
 {
 	struct statvfs fs;
@@ -223,7 +223,7 @@ disk_total(const char *mountpoint)
 	return smprintf("%f", (float)fs.f_bsize * (float)fs.f_blocks / 1024 / 1024 / 1024);
 }
 
-char *
+static char *
 disk_used(const char *mountpoint)
 {
 	struct statvfs fs;
@@ -236,7 +236,7 @@ disk_used(const char *mountpoint)
 	return smprintf("%f", (float)fs.f_bsize * ((float)fs.f_blocks - (float)fs.f_bfree) / 1024 / 1024 / 1024);
 }
 
-char *
+static char *
 entropy(const char *null)
 {
 	int entropy = 0;
@@ -252,7 +252,7 @@ entropy(const char *null)
 	return smprintf("%d", entropy);
 }
 
-char *
+static char *
 gid(const char *null)
 {
 	gid_t gid;
@@ -265,7 +265,7 @@ gid(const char *null)
 	return smprintf(unknowntext);
 }
 
-char *
+static char *
 hostname(const char *null)
 {
 	char hostname[HOST_NAME_MAX];
@@ -281,7 +281,7 @@ hostname(const char *null)
 	return smprintf("%s", hostname);
 }
 
-char *
+static char *
 ip(const char *interface)
 {
 	struct ifaddrs *ifaddr, *ifa;
@@ -315,7 +315,7 @@ ip(const char *interface)
 	return smprintf(unknowntext);
 }
 
-char *
+static char *
 load_avg(const char *null)
 {
 	double avgs[3];
@@ -328,7 +328,7 @@ load_avg(const char *null)
 	return smprintf("%.2f %.2f %.2f", avgs[0], avgs[1], avgs[2]);
 }
 
-char *
+static char *
 ram_free(const char *null)
 {
 	long free;
@@ -344,7 +344,7 @@ ram_free(const char *null)
 	return smprintf("%f", (float)free / 1024 / 1024);
 }
 
-char *
+static char *
 ram_perc(const char *null)
 {
 	int perc;
@@ -366,7 +366,7 @@ ram_perc(const char *null)
 	return smprintf("%d%%", perc);
 }
 
-char *
+static char *
 ram_total(const char *null)
 {
 	long total;
@@ -382,7 +382,7 @@ ram_total(const char *null)
 	return smprintf("%f", (float)total / 1024 / 1024);
 }
 
-char *
+static char *
 ram_used(const char *null)
 {
 	long free, total, buffers, cached, used;
@@ -403,7 +403,7 @@ ram_used(const char *null)
 	return smprintf("%f", (float)used / 1024 / 1024);
 }
 
-char *
+static char *
 run_command(const char* command)
 {
 	int good;
@@ -428,7 +428,7 @@ run_command(const char* command)
 	return smprintf("%s", buffer);
 }
 
-char *
+static char *
 temp(const char *file)
 {
 	int temperature;
@@ -444,7 +444,7 @@ temp(const char *file)
 	return smprintf("%d°C", temperature / 1000);
 }
 
-char *
+static char *
 uptime(const char *null)
 {
 	struct sysinfo info;
@@ -458,7 +458,7 @@ uptime(const char *null)
 	return smprintf("%dh %dm", hours, minutes);
 }
 
-char *
+static char *
 username(const char *null)
 {
 	register struct passwd *pw;
@@ -477,7 +477,7 @@ username(const char *null)
 	return smprintf(unknowntext);
 }
 
-char *
+static char *
 uid(const char *null)
 {
 	register uid_t uid;
@@ -495,7 +495,7 @@ uid(const char *null)
 }
 
 
-char *
+static char *
 vol_perc(const char *soundcard)
 {
 	int mute = 0;
@@ -537,7 +537,7 @@ vol_perc(const char *soundcard)
 		return smprintf("%d%%", (vol * 100) / max);
 }
 
-char *
+static char *
 wifi_perc(const char *wificard)
 {
 	int bufsize = 255;
@@ -583,7 +583,7 @@ wifi_perc(const char *wificard)
 	return smprintf("%d%%", strength);
 }
 
-char *
+static char *
 wifi_essid(const char *wificard)
 {
 	char id[IW_ESSID_MAX_SIZE+1];
