@@ -611,16 +611,6 @@ main(void)
 	char *res, *element;
 	struct arg argument;
 
-	/* get rid of unused functions warning */
-	if (0) { setstatus(""); battery_perc(""); cpu_perc();
-		datetime(""); disk_free(""); disk_perc("");
-		disk_total(""); disk_used(""); entropy();
-		gid(); hostname(); ip(""); load_avg();
-		ram_free(); ram_perc(); ram_used(); ram_total();
-		run_command(""); temp(""); uid(); uptime();
-		username(); vol_perc(""); wifi_perc("");
-		wifi_essid(""); }
-
 	if (!(dpy = XOpenDisplay(0x0))) {
 		fprintf(stderr, "Cannot open display!\n");
 		exit(1);
