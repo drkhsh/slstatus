@@ -29,7 +29,7 @@
 #include "strlcat.h"
 #include "strlcpy.h"
 
-typedef char *(*op_fun) (const char *);
+typedef char *(*op_fun)();
 struct arg {
 	op_fun func;
 	const char *format;
@@ -255,14 +255,8 @@ entropy(void)
 static char *
 gid(void)
 {
-	gid_t gid;
-
-	if ((gid = getgid()) < 0) {
-		fprintf(stderr, "Could no get gid.\n");
-		return smprintf(unknowntext);
-	} else
-		return smprintf("%d", gid);
-	return smprintf(unknowntext);
+	gid_t gid = getgid();
+	return smprintf("%d", gid);
 }
 
 static char *
@@ -612,8 +606,20 @@ wifi_essid(const char *wificard)
 int
 main(void)
 {
+	size_t i;
 	char status_string[1024];
+	char *res, *element;
 	struct arg argument;
+
+	/* get rid of unused functions warning */
+	if (0) { setstatus(""); battery_perc(""); cpu_perc();
+		datetime(""); disk_free(""); disk_perc("");
+		disk_total(""); disk_used(""); entropy();
+		gid(); hostname(); ip(""); load_avg();
+		ram_free(); ram_perc(); ram_used(); ram_total();
+		run_command(""); temp(""); uid(); uptime();
+		username(); vol_perc(""); wifi_perc("");
+		wifi_essid(""); }
 
 	if (!(dpy = XOpenDisplay(0x0))) {
 		fprintf(stderr, "Cannot open display!\n");
@@ -622,13 +628,13 @@ main(void)
 
 	for (;;) {
 		memset(status_string, 0, sizeof(status_string));
-		for (size_t i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
+		for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
 			argument = args[i];
 			if (argument.args == NULL)
-				char *res = argument.func();
+				res = argument.func();
 			else
-				char *res = argument.func(argument.args);
-			char *element = smprintf(argument.format, res);
+				res = argument.func(argument.args);
+			element = smprintf(argument.format, res);
 			if (element == NULL) {
 				element = smprintf(unknowntext);
 				fprintf(stderr, "Failed to format output.\n");
