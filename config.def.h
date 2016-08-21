@@ -48,5 +48,5 @@ static const struct arg args[] = {
 	{ ram_perc,     "ram %3s | ",   NULL },
 	{ vol_perc,     "vol %4s | ",   "default" },
 	{ disk_perc,    "ssd %3s | ",   "/" },
-	{ datetime,     "%s",           "%y-%m-%d %H:%M:%S" },
+	{ datetime,     "%s",           "%F %T" },
 };
