@@ -39,26 +39,26 @@ struct arg {
 static void setstatus(const char *);
 static char *smprintf(const char *, ...);
 static char *battery_perc(const char *);
-static char *cpu_perc(const char *);
+static char *cpu_perc(void);
 static char *datetime(const char *);
 static char *disk_free(const char *);
 static char *disk_perc(const char *);
 static char *disk_total(const char *);
 static char *disk_used(const char *);
-static char *entropy(const char *);
-static char *gid(const char *);
-static char *hostname(const char *);
+static char *entropy(void);
+static char *gid(void);
+static char *hostname(void);
 static char *ip(const char *);
-static char *load_avg(const char *);
-static char *ram_free(const char *);
-static char *ram_perc(const char *);
-static char *ram_used(const char *);
-static char *ram_total(const char *);
+static char *load_avg(void);
+static char *ram_free(void);
+static char *ram_perc(void);
+static char *ram_used(void);
+static char *ram_total(void);
 static char *run_command(const char *);
 static char *temp(const char *);
-static char *uid(const char *);
-static char *uptime(const char *);
-static char *username(const char *);
+static char *uid(void);
+static char *uptime(void);
+static char *username(void);
 static char *vol_perc(const char *);
 static char *wifi_perc(const char *);
 static char *wifi_essid(const char *);
@@ -129,7 +129,7 @@ battery_perc(const char *battery)
 }
 
 static char *
-cpu_perc(const char *null)
+cpu_perc(void)
 {
 	int perc;
 	long double a[4], b[4];
@@ -237,7 +237,7 @@ disk_used(const char *mountpoint)
 }
 
 static char *
-entropy(const char *null)
+entropy(void)
 {
 	int entropy = 0;
 	FILE *fp;
@@ -253,7 +253,7 @@ entropy(const char *null)
 }
 
 static char *
-gid(const char *null)
+gid(void)
 {
 	gid_t gid;
 
@@ -266,7 +266,7 @@ gid(const char *null)
 }
 
 static char *
-hostname(const char *null)
+hostname(void)
 {
 	char hostname[HOST_NAME_MAX];
 	FILE *fp;
@@ -316,7 +316,7 @@ ip(const char *interface)
 }
 
 static char *
-load_avg(const char *null)
+load_avg(void)
 {
 	double avgs[3];
 
@@ -329,7 +329,7 @@ load_avg(const char *null)
 }
 
 static char *
-ram_free(const char *null)
+ram_free(void)
 {
 	long free;
 	FILE *fp;
@@ -345,7 +345,7 @@ ram_free(const char *null)
 }
 
 static char *
-ram_perc(const char *null)
+ram_perc(void)
 {
 	int perc;
 	long total, free, buffers, cached;
@@ -367,7 +367,7 @@ ram_perc(const char *null)
 }
 
 static char *
-ram_total(const char *null)
+ram_total(void)
 {
 	long total;
 	FILE *fp;
@@ -383,7 +383,7 @@ ram_total(const char *null)
 }
 
 static char *
-ram_used(const char *null)
+ram_used(void)
 {
 	long free, total, buffers, cached, used;
 	FILE *fp;
@@ -445,7 +445,7 @@ temp(const char *file)
 }
 
 static char *
-uptime(const char *null)
+uptime(void)
 {
 	struct sysinfo info;
 	int hours = 0;
@@ -459,7 +459,7 @@ uptime(const char *null)
 }
 
 static char *
-username(const char *null)
+username(void)
 {
 	register struct passwd *pw;
 	register uid_t uid;
@@ -478,7 +478,7 @@ username(const char *null)
 }
 
 static char *
-uid(const char *null)
+uid(void)
 {
 	register uid_t uid;
 
@@ -624,7 +624,10 @@ main(void)
 		memset(status_string, 0, sizeof(status_string));
 		for (size_t i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
 			argument = args[i];
-			char *res = argument.func(argument.args);
+			if (argument.args == NULL)
+				char *res = argument.func();
+			else
+				char *res = argument.func(argument.args);
 			char *element = smprintf(argument.format, res);
 			if (element == NULL) {
 				element = smprintf(unknowntext);
