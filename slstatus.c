@@ -607,7 +607,7 @@ int
 main(void)
 {
 	size_t i;
-	char status_string[1024];
+	char status_string[4096];
 	char *res, *element;
 	struct arg argument;
 
