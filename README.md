@@ -1,7 +1,7 @@
 slstatus
 ========
 
-**slstatus** is a suckless and lightweight status monitor for window managers which use WM_NAME as statusbar (e.g. DWM). It is written in pure C without any system calls and only reads from files most of the time. It is meant as a better alternative to Bash scripts (inefficient) and Conky (bloated for this use).
+**slstatus** is a suckless and lightweight status monitor for window managers that use WM_NAME as statusbar (e.g. DWM). It is written in pure C without any system calls and only reads from files most of the time. It is meant to be a better alternative to Bash scripts (inefficient) and Conky (bloated for this use).
 
 If you write a bash script that shows system information in WM_NAME, it executes a huge amount of external command (top, free etc.) every few seconds. This results in high system resource usage. slstatus solves this problem by only using C libraries and/or reading from files in sysfs/procfs.
 
