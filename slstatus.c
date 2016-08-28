@@ -163,27 +163,14 @@ cpu_perc(void)
 static char *
 datetime(const char *timeformat)
 {
-	time_t tm;
-	size_t bufsize = 64;
-	char *buf = malloc(bufsize);
-	if (buf == NULL) {
-		fprintf(stderr, "Failed to get date/time.\n");
-		return smprintf(UNKNOWN_STR);
-	}
+	time_t t;
+	char timestr[80];
 
-	time(&tm);
-	setlocale(LC_TIME, "");
-	if (!strftime(buf, bufsize, timeformat, localtime(&tm))) {
-		setlocale(LC_TIME, "C");
-		free(buf);
-		fprintf(stderr, "Strftime failed.\n");
+	t = time(NULL);
+	if (strftime(timestr, sizeof(timestr), timeformat, localtime(&t)) == 0)
 		return smprintf(UNKNOWN_STR);
-	}
 
-	setlocale(LC_TIME, "C");
-	char *ret = smprintf("%s", buf);
-	free(buf);
-	return ret;
+	return smprintf("%s", timestr);
 }
 
 static char *
