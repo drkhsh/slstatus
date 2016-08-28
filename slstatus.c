@@ -79,17 +79,23 @@ static char *
 smprintf(const char *fmt, ...)
 {
 	va_list ap;
-	char tmp[120];
-	char *ret = NULL;
+	char *ret;
+	int len;
 
 	va_start(ap, fmt);
-	vsnprintf(tmp, sizeof(tmp)-1, fmt, ap);
-	tmp[strlen(tmp)+1] = '\0';
-
-	if (asprintf(&ret, "%s", tmp) < 0)
-		return NULL;
-
+	len = vsnprintf(NULL, 0, fmt, ap);
 	va_end(ap);
+
+	ret = malloc(++len);
+	if (ret == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
+	va_start(ap, fmt);
+	vsnprintf(ret, len, fmt, ap);
+	va_end(ap);
+
 	return ret;
 }
 
