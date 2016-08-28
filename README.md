@@ -38,7 +38,7 @@ Before you continue, please be sure that a C compiler (preferrably gcc), GNU mak
 
 ### Starting
 
-Write the following code in your ~/.xinitrc (or any other initialization script):
+Write the following code to your ~/.xinitrc (or any other initialization script):
 
 	while true; do
 		slstatus
