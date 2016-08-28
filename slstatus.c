@@ -78,17 +78,17 @@ setstatus(const char *str)
 static char *
 smprintf(const char *fmt, ...)
 {
-	va_list fmtargs;
-	char tmp[120];
+	/* FIXME: This code should have
+	bound checks, it is vulnerable to
+	buffer overflows */
+	va_list ap;
 	char *ret = NULL;
 
-	va_start(fmtargs, fmt);
-	snprintf(tmp, sizeof(tmp)-1, fmt, fmtargs);
-	tmp[sizeof(tmp)] = '\0';
-	if (asprintf(&ret, "%s", tmp) < 0)
+	va_start(ap, fmt);
+	if (vasprintf(&ret, fmt, ap) < 0)
 		return NULL;
 
-	va_end(fmtargs);
+	va_end(ap);
 	return ret;
 }
 
