@@ -43,7 +43,6 @@ static const struct arg args[] = {
 	/* function	format			argument */
 	{ cpu_perc,	"[ CPU %4s ]",		NULL },
 	{ ram_perc,	"[ Mem %3s ]",		NULL },
-	{ vol_perc,	"[ Volume %4s ]",	"default" },
 	{ disk_perc,	"[ HDD %3s ]",		"/" },
 	{ datetime,	"[ %s ]",		"%F %T" },
 };
