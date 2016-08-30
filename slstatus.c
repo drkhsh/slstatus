@@ -105,7 +105,7 @@ battery_perc(const char *battery)
 	int now, full, perc;
 	char batterynowfile[64];
 	char batteryfullfile[64];
-	FILE *fp;
+	FILE *fp = fopen(batterynowfile, "r");
 
 	strlcpy(batterynowfile, BATTERY_PATH, sizeof(batterynowfile));
 	strlcat(batterynowfile, battery, sizeof(batterynowfile));
@@ -117,16 +117,20 @@ battery_perc(const char *battery)
 	strlcat(batteryfullfile, "/", sizeof(batteryfullfile));
 	strlcat(batteryfullfile, BATTERY_FULL, sizeof(batteryfullfile));
 
-	if (!(fp = fopen(batterynowfile, "r"))) {
-		fprintf(stderr, "Error opening battery file: %s.\n", batterynowfile);
+	if (fp == NULL ) {
+		fprintf(stderr, "Error opening battery file: %s: %s\n",
+						batterynowfile,
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
 	fscanf(fp, "%i", &now);
 	fclose(fp);
 
-	if (!(fp = fopen(batteryfullfile, "r"))) {
-		fprintf(stderr, "Error opening battery file.\n");
+	fp = fopen(batteryfullfile, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "Error opening battery file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -143,10 +147,11 @@ cpu_perc(void)
 {
 	int perc;
 	long double a[4], b[4];
-	FILE *fp;
+	FILE *fp = fopen("/proc/stat","r");
 
-	if (!(fp = fopen("/proc/stat","r"))) {
-		fprintf(stderr, "Error opening stat file.\n");
+	if (fp == NULL) {
+		fprintf(stderr, "Error opening stat file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -156,8 +161,10 @@ cpu_perc(void)
 	/* wait a second (for avg values) */
 	sleep(1);
 
-	if (!(fp = fopen("/proc/stat","r"))) {
-		fprintf(stderr, "Error opening stat file.\n");
+	fp = fopen("/proc/stat","r");
+	if (fp == NULL) {
+		fprintf(stderr, "Error opening stat file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -186,7 +193,8 @@ disk_free(const char *mountpoint)
 	struct statvfs fs;
 
 	if (statvfs(mountpoint, &fs) < 0) {
-		fprintf(stderr, "Could not get filesystem info.\n");
+		fprintf(stderr, "Could not get filesystem info: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 	return smprintf("%f", (float)fs.f_bsize * (float)fs.f_bfree / 1024 / 1024 / 1024);
@@ -199,7 +207,8 @@ disk_perc(const char *mountpoint)
 	struct statvfs fs;
 
 	if (statvfs(mountpoint, &fs) < 0) {
-		fprintf(stderr, "Could not get filesystem info.\n");
+		fprintf(stderr, "Could not get filesystem info: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -213,7 +222,8 @@ disk_total(const char *mountpoint)
 	struct statvfs fs;
 
 	if (statvfs(mountpoint, &fs) < 0) {
-		fprintf(stderr, "Could not get filesystem info.\n");
+		fprintf(stderr, "Could not get filesystem info: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -226,7 +236,8 @@ disk_used(const char *mountpoint)
 	struct statvfs fs;
 
 	if (statvfs(mountpoint, &fs) < 0) {
-		fprintf(stderr, "Could not get filesystem info.\n");
+		fprintf(stderr, "Could not get filesystem info: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -237,9 +248,9 @@ static char *
 entropy(void)
 {
 	int entropy = 0;
-	FILE *fp;
+	FILE *fp = fopen("/proc/sys/kernel/random/entropy_avail", "r");
 
-	if (!(fp = fopen("/proc/sys/kernel/random/entropy_avail", "r"))) {
+	if (fp == NULL) {
 		fprintf(stderr, "Could not open entropy file.\n");
 		return smprintf(UNKNOWN_STR);
 	}
@@ -260,14 +271,18 @@ static char *
 hostname(void)
 {
 	char hostname[HOST_NAME_MAX];
-	FILE *fp;
+	FILE *fp = fopen("/proc/sys/kernel/hostname", "r");
 
-	if (!(fp = fopen("/proc/sys/kernel/hostname", "r"))) {
-		fprintf(stderr, "Could not open hostname file.\n");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open hostname file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
-	fscanf(fp, "%s\n", hostname);
+	fgets(hostname, sizeof(hostname), fp);
+	/* FIXME: needs improvement */
+	memset(&hostname[strlen(hostname)-1], '\0',
+		sizeof(hostname) - strlen(hostname));
 	fclose(fp);
 	return smprintf("%s", hostname);
 }
@@ -280,7 +295,8 @@ ip(const char *interface)
 	char host[NI_MAXHOST];
 
 	if (getifaddrs(&ifaddr) == -1) {
-		fprintf(stderr, "Error getting IP address.\n");
+		fprintf(stderr, "Error getting IP address: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -289,7 +305,8 @@ ip(const char *interface)
 		if (ifa->ifa_addr == NULL)
 			continue;
 
-		s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+		s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST,
+								NULL, 0, NI_NUMERICHOST);
 
 		if ((strcmp(ifa->ifa_name, interface) == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
 			if (s != 0) {
@@ -323,10 +340,11 @@ static char *
 ram_free(void)
 {
 	long free;
-	FILE *fp;
+	FILE *fp = fopen("/proc/meminfo", "r");
 
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.\n");
+	if (fp == NULL) {
+		fprintf(stderr, "Error opening meminfo file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -340,10 +358,11 @@ ram_perc(void)
 {
 	int perc;
 	long total, free, buffers, cached;
-	FILE *fp;
+	FILE *fp = fopen("/proc/meminfo", "r");
 
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.\n");
+	if (fp == NULL) {
+		fprintf(stderr, "Error opening meminfo file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -361,10 +380,11 @@ static char *
 ram_total(void)
 {
 	long total;
-	FILE *fp;
+	FILE *fp = fopen("/proc/meminfo", "r");
 
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.\n");
+	if (fp == NULL) {
+		fprintf(stderr, "Error opening meminfo file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -377,10 +397,11 @@ static char *
 ram_used(void)
 {
 	long free, total, buffers, cached, used;
-	FILE *fp;
+	FILE *fp = fopen("/proc/meminfo", "r");
 
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.\n");
+	if (fp == NULL) {
+		fprintf(stderr, "Error opening meminfo file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -398,15 +419,16 @@ static char *
 run_command(const char* command)
 {
 	int good;
-	FILE *fp;
+	FILE *fp = popen(command, "r");
 	char buffer[64];
 
-	if (!(fp = popen(command, "r"))) {
-		fprintf(stderr, "Could not get command output for: %s.\n", command);
+	if (fp == NULL) {
+		fprintf(stderr, "Could not get command output for: %s: %s\n",
+						command, strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
-	fgets(buffer, sizeof(buffer) - 1, fp);
+	fgets(buffer, sizeof(buffer)-1, fp);
 	pclose(fp);
 	for (int i = 0 ; i != sizeof(buffer); i++) {
 		if (buffer[i] == '\0') {
@@ -415,7 +437,7 @@ run_command(const char* command)
 		}
 	}
 	if (good)
-		buffer[strlen(buffer) - 1] = '\0';
+		buffer[strlen(buffer)-1] = '\0';
 	return smprintf("%s", buffer);
 }
 
@@ -423,10 +445,11 @@ static char *
 temp(const char *file)
 {
 	int temperature;
-	FILE *fp;
+	FILE *fp = fopen(file, "r");
 
-	if (!(fp = fopen(file, "r"))) {
-		fprintf(stderr, "Could not open temperature file.\n");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open temperature file: %s\n",
+							strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -461,7 +484,8 @@ username(void)
 	if (pw)
 		return smprintf("%s", pw->pw_name);
 	else {
-		fprintf(stderr, "Could not get username.\n");
+		fprintf(stderr, "Could not get username: %s\n",
+					strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -471,6 +495,7 @@ username(void)
 static char *
 uid(void)
 {
+	/* FIXME: WHY USE register modifier? */
 	register uid_t uid;
 
 	uid = geteuid();
@@ -531,22 +556,21 @@ vol_perc(const char *soundcard)
 static char *
 wifi_perc(const char *wificard)
 {
-	int bufsize = 255;
 	int strength;
-	char buf[bufsize];
+	char buf[255];
 	char *datastart;
 	char path[64];
 	char status[5];
-	char needle[sizeof wificard + 1];
-	FILE *fp;
+	char needle[strlen(wificard)+2];
+	FILE *fp = fopen(path, "r");
 
-	memset(path, 0, sizeof path);
-	strlcat(path, "/sys/class/net/", sizeof(path));
+	strlcpy(path, "/sys/class/net/", sizeof(path));
 	strlcat(path, wificard, sizeof(path));
 	strlcat(path, "/operstate", sizeof(path));
 
-	if(!(fp = fopen(path, "r"))) {
-		fprintf(stderr, "Error opening wifi operstate file.\n");
+	if(fp == NULL) {
+		fprintf(stderr, "Error opening wifi operstate file: %s\n",
+							strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -555,17 +579,21 @@ wifi_perc(const char *wificard)
 	if(strcmp(status, "up\n") != 0)
 		return smprintf(UNKNOWN_STR);
 
-	if (!(fp = fopen("/proc/net/wireless", "r"))) {
-		fprintf(stderr, "Error opening wireless file.\n");
+	fp = fopen("/proc/net/wireless", "r");
+	if (fp == NULL) {
+		fprintf(stderr, "Error opening wireless file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
 	strlcpy(needle, wificard, sizeof(needle));
 	strlcat(needle, ":", sizeof(needle));
-	fgets(buf, bufsize, fp);
-	fgets(buf, bufsize, fp);
-	fgets(buf, bufsize, fp);
-	if ((datastart = strstr(buf, needle)) != NULL) {
+	fgets(buf, sizeof(buf), fp);
+	fgets(buf, sizeof(buf), fp);
+	fgets(buf, sizeof(buf), fp);
+
+	datastart = strstr(buf, needle);
+	if (datastart != NULL) {
 		datastart = strstr(buf, ":");
 		sscanf(datastart + 1, " %*d   %d  %*d  %*d		  %*d	   %*d		%*d		 %*d	  %*d		 %*d", &strength);
 	}
@@ -578,19 +606,21 @@ static char *
 wifi_essid(const char *wificard)
 {
 	char id[IW_ESSID_MAX_SIZE+1];
-	int sockfd;
+	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	struct iwreq wreq;
 
 	memset(&wreq, 0, sizeof(struct iwreq));
 	wreq.u.essid.length = IW_ESSID_MAX_SIZE+1;
 	sprintf(wreq.ifr_name, wificard);
-	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-		fprintf(stderr, "Cannot open socket for interface: %s\n", wificard);
+	if(sockfd == -1) {
+		fprintf(stderr, "Cannot open socket for interface: %s: %s\n",
+						wificard, strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 	wreq.u.essid.pointer = id;
 	if (ioctl(sockfd,SIOCGIWESSID, &wreq) == -1) {
-		fprintf(stderr, "Get ESSID ioctl failed for interface %s\n", wificard);
+		fprintf(stderr, "Get ESSID ioctl failed for interface %s: %s\n",
+						wificard, strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -608,7 +638,8 @@ main(void)
 	char *res, *element;
 	struct arg argument;
 
-	if (!(dpy = XOpenDisplay(0x0))) {
+	dpy = XOpenDisplay(0x0);
+	if (!dpy) {
 		fprintf(stderr, "Cannot open display!\n");
 		exit(1);
 	}
