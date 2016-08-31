@@ -105,7 +105,7 @@ battery_perc(const char *battery)
 	int now, full, perc;
 	char batterynowfile[64];
 	char batteryfullfile[64];
-	FILE *fp = fopen(batterynowfile, "r");
+	FILE *fp;
 
 	strlcpy(batterynowfile, BATTERY_PATH, sizeof(batterynowfile));
 	strlcat(batterynowfile, battery, sizeof(batterynowfile));
@@ -117,6 +117,7 @@ battery_perc(const char *battery)
 	strlcat(batteryfullfile, "/", sizeof(batteryfullfile));
 	strlcat(batteryfullfile, BATTERY_FULL, sizeof(batteryfullfile));
 
+	fp = fopen(batterynowfile, "r");
 	if (fp == NULL ) {
 		fprintf(stderr, "Error opening battery file: %s: %s\n",
 						batterynowfile,
