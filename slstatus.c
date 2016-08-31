@@ -564,11 +564,13 @@ wifi_perc(const char *wificard)
 	char path[64];
 	char status[5];
 	char needle[strlen(wificard)+2];
-	FILE *fp = fopen(path, "r");
+	FILE *fp;
 
 	strlcpy(path, "/sys/class/net/", sizeof(path));
 	strlcat(path, wificard, sizeof(path));
 	strlcat(path, "/operstate", sizeof(path));
+
+	fp = fopen(path, "r");
 
 	if(fp == NULL) {
 		fprintf(stderr, "Error opening wifi operstate file: %s\n",
