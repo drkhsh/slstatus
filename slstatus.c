@@ -252,7 +252,8 @@ entropy(void)
 	FILE *fp = fopen("/proc/sys/kernel/random/entropy_avail", "r");
 
 	if (fp == NULL) {
-		fprintf(stderr, "Could not open entropy file.\n");
+		fprintf(stderr, "Could not open entropy file: %s\n",
+						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
 
