@@ -1,12 +1,10 @@
 /* See LICENSE file for copyright and license details. */
 
 #include <alsa/asoundlib.h>
-#include <arpa/inet.h>
 #include <fcntl.h>
 #include <ifaddrs.h>
 #include <limits.h>
 #include <linux/wireless.h>
-#include <locale.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <stdarg.h>
