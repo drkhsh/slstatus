@@ -652,6 +652,13 @@ main(void)
 		sleep(UPDATE_INTERVAL -1);
 	}
 
+	/* NOT REACHED */
+	/*
+	 * TODO: find out a way to exit successfully
+	 * to prevent memory leaks
+	 */
+/*
 	XCloseDisplay(dpy);
 	return 0;
+*/
 }
