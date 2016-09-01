@@ -27,9 +27,8 @@
 #include "strlcat.h"
 #include "strlcpy.h"
 
-typedef char *(*op_fun)();
 struct arg {
-	op_fun func;
+	char *(*func)();
 	const char *format;
 	const char *args;
 };
@@ -475,6 +474,7 @@ uptime(void)
 static char *
 username(void)
 {
+	/* FIXME: WHY USE REGISTER MODIFIER? */
 	register struct passwd *pw;
 	register uid_t uid;
 
@@ -514,6 +514,10 @@ uid(void)
 static char *
 vol_perc(const char *soundcard)
 {
+	/*
+	 * TODO: FIXME: 
+	 * https://github.com/drkh5h/slstatus/issues/12
+	 */
 	int mute = 0;
 	long vol = 0, max = 0, min = 0;
 	snd_mixer_t *handle;
