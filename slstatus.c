@@ -262,8 +262,7 @@ entropy(void)
 static char *
 gid(void)
 {
-	gid_t gid = getgid();
-	return smprintf("%d", gid);
+	return smprintf("%d", getgid());
 }
 
 static char *
