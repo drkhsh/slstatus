@@ -474,40 +474,21 @@ uptime(void)
 static char *
 username(void)
 {
-	/* FIXME: WHY USE REGISTER MODIFIER? */
-	register struct passwd *pw;
-	register uid_t uid;
+	uid_t uid = geteuid();
+	struct passwd *pw = getpwuid(uid);
 
-	uid = geteuid();
-	pw = getpwuid(uid);
-
-	if (pw)
+	if (pw == NULL)
 		return smprintf("%s", pw->pw_name);
-	else {
-		fprintf(stderr, "Could not get username: %s\n",
-					strerror(errno));
-		return smprintf(UNKNOWN_STR);
-	}
 
+	fprintf(stderr, "Could not get username: %s\n",
+					strerror(errno));
 	return smprintf(UNKNOWN_STR);
 }
 
 static char *
 uid(void)
 {
-	/* FIXME: WHY USE register modifier? */
-	register uid_t uid;
-
-	uid = geteuid();
-
-	if (uid)
-		return smprintf("%d", uid);
-	else {
-		fprintf(stderr, "Could not get uid.\n");
-		return smprintf(UNKNOWN_STR);
-	}
-
-	return smprintf(UNKNOWN_STR);
+	return smprintf("%d", geteuid());
 }
 
 
