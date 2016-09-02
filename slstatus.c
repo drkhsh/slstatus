@@ -33,7 +33,6 @@ struct arg {
 	const char *args;
 };
 
-static void setstatus(const char *);
 static char *smprintf(const char *, ...);
 static char *battery_perc(const char *);
 static char *cpu_perc(void);
@@ -63,14 +62,6 @@ static char *wifi_essid(const char *);
 static Display *dpy;
 
 #include "config.h"
-
-static void
-setstatus(const char *str)
-{
-	/* set WM_NAME via X11 */
-	XStoreName(dpy, DefaultRootWindow(dpy), str);
-	XSync(dpy, False);
-}
 
 static char *
 smprintf(const char *fmt, ...)
@@ -625,10 +616,6 @@ main(void)
 	struct arg argument;
 
 	dpy = XOpenDisplay(0x0);
-	if (!dpy) {
-		fprintf(stderr, "Cannot open display!\n");
-		exit(1);
-	}
 
 	for (;;) {
 		memset(status_string, 0, sizeof(status_string));
@@ -648,7 +635,8 @@ main(void)
 			free(element);
 		}
 
-		setstatus(status_string);
+		XStoreName(dpy, DefaultRootWindow(dpy), status_string);
+		XSync(dpy, False);
 		sleep(UPDATE_INTERVAL -1);
 	}
 
@@ -657,8 +645,6 @@ main(void)
 	 * TODO: find out a way to exit successfully
 	 * to prevent memory leaks
 	 */
-/*
 	XCloseDisplay(dpy);
 	return 0;
-*/
 }
