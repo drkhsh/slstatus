@@ -8,9 +8,6 @@
 #define BATTERY_NOW	"energy_now"
 #define BATTERY_FULL	"energy_full_design"
 
-/* bar update interval in seconds (smallest value = 1) */
-#define UPDATE_INTERVAL	1
-
 /* text to show if no value can be retrieved */
 #define UNKNOWN_STR	"n/a"
 
