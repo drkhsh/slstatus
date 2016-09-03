@@ -147,7 +147,6 @@ cpu_perc(void)
 	fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &a[0], &a[1], &a[2], &a[3]);
 	fclose(fp);
 
-	/* wait a second (for avg values) */
 	sleep(1);
 
 	fp = fopen("/proc/stat","r");
@@ -637,7 +636,6 @@ main(void)
 
 		XStoreName(dpy, DefaultRootWindow(dpy), status_string);
 		XSync(dpy, False);
-		sleep(UPDATE_INTERVAL -1);
 	}
 
 	/* NOT REACHED */
