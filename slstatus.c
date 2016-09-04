@@ -604,21 +604,23 @@ main(void)
 	stderr = stderr;
 	dpy = XOpenDisplay(NULL);
 
-	memset(status_string, 0, sizeof(status_string));
-	for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
-		argument = args[i];
-		if (argument.args == NULL)
-			res = argument.func();
-		else
-			res = argument.func(argument.args);
-		element = smprintf(argument.format, res);
-		if (element == NULL) {
-			element = smprintf(UNKNOWN_STR);
-			fprintf(stderr, "Failed to format output.\n");
+	for (;;) {
+		memset(status_string, 0, sizeof(status_string));
+		for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
+			argument = args[i];
+			if (argument.args == NULL)
+				res = argument.func();
+			else
+				res = argument.func(argument.args);
+			element = smprintf(argument.format, res);
+			if (element == NULL) {
+				element = smprintf(UNKNOWN_STR);
+				fprintf(stderr, "Failed to format output.\n");
+			}
+			strlcat(status_string, element, sizeof(status_string));
+			free(res);
+			free(element);
 		}
-		strlcat(status_string, element, sizeof(status_string));
-		free(res);
-		free(element);
 	}
 
 	XStoreName(dpy, DefaultRootWindow(dpy), status_string);
