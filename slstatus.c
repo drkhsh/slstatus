@@ -601,7 +601,6 @@ main(void)
 	char *res, *element;
 	struct arg argument;
 
-	stderr = stderr;
 	dpy = XOpenDisplay(NULL);
 
 	for (;;) {
@@ -621,10 +620,9 @@ main(void)
 			free(res);
 			free(element);
 		}
+		XStoreName(dpy, DefaultRootWindow(dpy), status_string);
+		XSync(dpy, False);
 	}
-
-	XStoreName(dpy, DefaultRootWindow(dpy), status_string);
-	XSync(dpy, False);
 	XCloseDisplay(dpy);
 
 	return 0;
