@@ -490,17 +490,17 @@ vol_perc(const char *snd_card)
 	snd_mixer_selem_id_t *s_elem;
 
 	snd_mixer_open(&handle, 0);
-	snd_mixer_attach(handle, snd_card);
+	snd_mixer_attach(handle, "default");
 	snd_mixer_selem_register(handle, NULL, NULL);
 	snd_mixer_load(handle);
 	snd_mixer_selem_id_malloc(&s_elem);
-	snd_mixer_selem_id_set_name(s_elem, "Master");
+	snd_mixer_selem_id_set_name(s_elem, snd_card);
 	elem = snd_mixer_find_selem(handle, s_elem);
 
 	if (elem == NULL) {
 		snd_mixer_selem_id_free(s_elem);
 		snd_mixer_close(handle);
-		perror("alsa error: ");
+		perror("alsa error");
 		return smprintf(UNKNOWN_STR);
 	}
 
