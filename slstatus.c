@@ -26,6 +26,9 @@
 
 #include "strlcat.h"
 #include "strlcpy.h"
+#include "concat.h"
+
+char concat[];
 
 struct arg {
 	char *(*func)();
@@ -91,24 +94,14 @@ static char *
 battery_perc(const char *battery)
 {
 	int now, full, perc;
-	char batterynowfile[64];
-	char batteryfullfile[64];
 	FILE *fp;
 
-	strlcpy(batterynowfile, BATTERY_PATH, sizeof(batterynowfile));
-	strlcat(batterynowfile, battery, sizeof(batterynowfile));
-	strlcat(batterynowfile, "/", sizeof(batterynowfile));
-	strlcat(batterynowfile, BATTERY_NOW, sizeof(batterynowfile));
+	ccat(4, BATTERY_PATH, battery, "/", BATTERY_NOW);
 
-	strlcpy(batteryfullfile, BATTERY_PATH, sizeof(batteryfullfile));
-	strlcat(batteryfullfile, battery, sizeof(batteryfullfile));
-	strlcat(batteryfullfile, "/", sizeof(batteryfullfile));
-	strlcat(batteryfullfile, BATTERY_FULL, sizeof(batteryfullfile));
-
-	fp = fopen(batterynowfile, "r");
-	if (fp == NULL ) {
+	fp = fopen(concat, "r");
+	if (fp == NULL) {
 		fprintf(stderr, "Error opening battery file: %s: %s\n",
-						batterynowfile,
+						concat,
 						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
@@ -116,9 +109,12 @@ battery_perc(const char *battery)
 	fscanf(fp, "%i", &now);
 	fclose(fp);
 
-	fp = fopen(batteryfullfile, "r");
+	ccat(4, BATTERY_PATH, battery, "/", BATTERY_FULL);
+
+	fp = fopen(concat, "r");
 	if (fp == NULL) {
-		fprintf(stderr, "Error opening battery file: %s\n",
+		fprintf(stderr, "Error opening battery file: %s: %s\n",
+						concat,
 						strerror(errno));
 		return smprintf(UNKNOWN_STR);
 	}
@@ -520,16 +516,12 @@ wifi_perc(const char *wificard)
 	int strength;
 	char buf[255];
 	char *datastart;
-	char path[64];
 	char status[5];
-	char needle[strlen(wificard)+2];
 	FILE *fp;
 
-	strlcpy(path, "/sys/class/net/", sizeof(path));
-	strlcat(path, wificard, sizeof(path));
-	strlcat(path, "/operstate", sizeof(path));
+	ccat(3, "/sys/class/net", wificard, "/operstate");
 
-	fp = fopen(path, "r");
+	fp = fopen(concat, "r");
 
 	if(fp == NULL) {
 		fprintf(stderr, "Error opening wifi operstate file: %s\n",
@@ -549,13 +541,12 @@ wifi_perc(const char *wificard)
 		return smprintf(UNKNOWN_STR);
 	}
 
-	strlcpy(needle, wificard, sizeof(needle));
-	strlcat(needle, ":", sizeof(needle));
+	ccat(2, wificard, ":");
 	fgets(buf, sizeof(buf), fp);
 	fgets(buf, sizeof(buf), fp);
 	fgets(buf, sizeof(buf), fp);
 
-	datastart = strstr(buf, needle);
+	datastart = strstr(buf, concat);
 	if (datastart != NULL) {
 		datastart = strstr(buf, ":");
 		sscanf(datastart + 1, " %*d   %d  %*d  %*d		  %*d	   %*d		%*d		 %*d	  %*d		 %*d", &strength);
