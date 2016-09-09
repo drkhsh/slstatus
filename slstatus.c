@@ -1,13 +1,11 @@
 /* See LICENSE file for copyright and license details. */
 
-/* global libraries */
 #include <alsa/asoundlib.h>
-#include <arpa/inet.h>
+#include <err.h>
 #include <fcntl.h>
 #include <ifaddrs.h>
 #include <limits.h>
 #include <linux/wireless.h>
-#include <locale.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <stdarg.h>
@@ -24,352 +22,268 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 
-/* statusbar configuration type and struct */
-typedef char *(*op_fun) (const char *);
+#undef strlcat
+#undef strlcpy
+
+#include "strlcat.h"
+#include "strlcpy.h"
+#include "concat.h"
+
+char concat[];
+
 struct arg {
-	op_fun func;
+	char *(*func)();
 	const char *format;
 	const char *args;
 };
 
-/* function declarations */
-void setstatus(const char *str);
-char *smprintf(const char *fmt, ...);
-char *battery_perc(const char *battery);
-char *cpu_perc(const char *null);
-char *datetime(const char *timeformat);
-char *disk_free(const char *mountpoint);
-char *disk_perc(const char *mountpoint);
-char *disk_total(const char *mountpoint);
-char *disk_used(const char *mountpoint);
-char *entropy(const char *null);
-char *gid(const char *null);
-char *hostname(const char *null);
-char *ip(const char *interface);
-char *load_avg(const char *null);
-char *ram_free(const char *null);
-char *ram_perc(const char *null);
-char *ram_used(const char *null);
-char *ram_total(const char *null);
-char *run_command(const char *command);
-char *temp(const char *file);
-char *uid(const char *null);
-char *uptime(const char *null);
-char *username(const char *null);
-char *vol_perc(const char *soundcard);
-char *wifi_perc(const char *wificard);
-char *wifi_essid(const char *wificard);
+static char *smprintf(const char *, ...);
+static char *battery_perc(const char *);
+static char *cpu_perc(void);
+static char *datetime(const char *);
+static char *disk_free(const char *);
+static char *disk_perc(const char *);
+static char *disk_total(const char *);
+static char *disk_used(const char *);
+static char *entropy(void);
+static char *gid(void);
+static char *hostname(void);
+static char *ip(const char *);
+static char *load_avg(void);
+static char *ram_free(void);
+static char *ram_perc(void);
+static char *ram_used(void);
+static char *ram_total(void);
+static char *run_command(const char *);
+static char *temp(const char *);
+static char *uid(void);
+static char *uptime(void);
+static char *username(void);
+static char *vol_perc(const char *);
+static char *wifi_perc(const char *);
+static char *wifi_essid(const char *);
 
-/* global variables */
 static Display *dpy;
 
-/* configuration header */
 #include "config.h"
 
-/* set statusbar */
-void
-setstatus(const char *str)
-{
-	/* set WM_NAME via X11 */
-	XStoreName(dpy, DefaultRootWindow(dpy), str);
-	XSync(dpy, False);
-}
-
-/* smprintf function */
-char *
+static char *
 smprintf(const char *fmt, ...)
 {
-	va_list fmtargs;
-	char *ret = NULL;
+	va_list ap;
+	char *ret;
+	int len;
 
-	va_start(fmtargs, fmt);
-	if (vasprintf(&ret, fmt, fmtargs) < 0) {
-		return NULL;
+	va_start(ap, fmt);
+	len = vsnprintf(NULL, 0, fmt, ap);
+	va_end(ap);
+
+	ret = malloc(++len);
+	if (ret == NULL) {
+		perror("malloc");
+		exit(1);
 	}
-	va_end(fmtargs);
+
+	va_start(ap, fmt);
+	vsnprintf(ret, len, fmt, ap);
+	va_end(ap);
 
 	return ret;
 }
 
-/* battery percentage */
-char *
+static char *
 battery_perc(const char *battery)
 {
 	int now, full, perc;
-	char batterynowfile[64] = "";
-	char batteryfullfile[64] = "";
 	FILE *fp;
 
-	/* generate battery nowfile path */
-	strcat(batterynowfile, batterypath);
-	strcat(batterynowfile, battery);
-	strcat(batterynowfile, "/");
-	strcat(batterynowfile, batterynow);
+	ccat(4, BATTERY_PATH, battery, "/", BATTERY_NOW);
 
-	/* generate battery fullfile path */
-	strcat(batteryfullfile, batterypath);
-	strcat(batteryfullfile, battery);
-	strcat(batteryfullfile, "/");
-	strcat(batteryfullfile, batteryfull);
-
-	/* open battery now file */
-	if (!(fp = fopen(batterynowfile, "r"))) {
-		fprintf(stderr, "Error opening battery file: %s.\n", batterynowfile);
-		return smprintf(unknowntext);
+	fp = fopen(concat, "r");
+	if (fp == NULL) {
+		warn("Error opening battery file: %s", concat);
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* read value */
 	fscanf(fp, "%i", &now);
-
-	/* close battery now file */
 	fclose(fp);
 
-	/* open battery full file */
-	if (!(fp = fopen(batteryfullfile, "r"))) {
-		fprintf(stderr, "Error opening battery file.\n");
-		return smprintf(unknowntext);
+	ccat(4, BATTERY_PATH, battery, "/", BATTERY_FULL);
+
+	fp = fopen(concat, "r");
+	if (fp == NULL) {
+		warn("Error opening battery file: %s", concat);
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* read value */
 	fscanf(fp, "%i", &full);
-
-	/* close battery full file */
 	fclose(fp);
 
-	/* calculate percent */
 	perc = now / (full / 100);
 
-	/* return perc as string */
 	return smprintf("%d%%", perc);
 }
 
-/* cpu percentage */
-char *
-cpu_perc(const char *null)
+static char *
+cpu_perc(void)
 {
 	int perc;
 	long double a[4], b[4];
-	FILE *fp;
+	FILE *fp = fopen("/proc/stat","r");
 
-	/* open stat file */
-	if (!(fp = fopen("/proc/stat","r"))) {
-		fprintf(stderr, "Error opening stat file.\n");
-		return smprintf(unknowntext);
+	if (fp == NULL) {
+		warn("Error opening stat file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* read values */
 	fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &a[0], &a[1], &a[2], &a[3]);
-
-	/* close stat file */
 	fclose(fp);
 
-	/* wait a second (for avg values) */
 	sleep(1);
 
-	/* open stat file */
-	if (!(fp = fopen("/proc/stat","r"))) {
-		fprintf(stderr, "Error opening stat file.\n");
-		return smprintf(unknowntext);
+	fp = fopen("/proc/stat","r");
+	if (fp == NULL) {
+		warn("Error opening stat file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* read values */
 	fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &b[0], &b[1], &b[2], &b[3]);
-
-	/* close stat file */
 	fclose(fp);
-
-	/* calculate avg in this second */
 	perc = 100 * ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
-
-	/* return perc as string */
 	return smprintf("%d%%", perc);
 }
 
-/* date and time */
-char *
+static char *
 datetime(const char *timeformat)
 {
-	time_t tm;
-	size_t bufsize = 64;
-	char *buf = malloc(bufsize);
-	if (buf == NULL) {
-		fprintf(stderr, "Failed to get date/time.\n");
-		return smprintf(unknowntext);
-	}
+	time_t t;
+	char timestr[80];
 
-	/* get time in format */
-	time(&tm);
-	setlocale(LC_TIME, "");
-	if (!strftime(buf, bufsize, timeformat, localtime(&tm))) {
-		setlocale(LC_TIME, "C");
-		free(buf);
-		fprintf(stderr, "Strftime failed.\n");
-		return smprintf(unknowntext);
-	}
+	t = time(NULL);
+	if (strftime(timestr, sizeof(timestr), timeformat, localtime(&t)) == 0)
+		return smprintf(UNKNOWN_STR);
 
-	setlocale(LC_TIME, "C");
-	/* return time */
-	char *ret = smprintf("%s", buf);
-	free(buf);
-	return ret;
+	return smprintf("%s", timestr);
 }
 
-/* disk free */
-char *
+static char *
 disk_free(const char *mountpoint)
 {
 	struct statvfs fs;
 
-	/* try to open mountpoint */
 	if (statvfs(mountpoint, &fs) < 0) {
-		fprintf(stderr, "Could not get filesystem info.\n");
-		return smprintf(unknowntext);
+		warn("Could not get filesystem info");
+		return smprintf(UNKNOWN_STR);
 	}
-
-	/* return free */
 	return smprintf("%f", (float)fs.f_bsize * (float)fs.f_bfree / 1024 / 1024 / 1024);
 }
 
-/* disk usage percentage */
-char *
+static char *
 disk_perc(const char *mountpoint)
 {
 	int perc = 0;
 	struct statvfs fs;
 
-	/* try to open mountpoint */
 	if (statvfs(mountpoint, &fs) < 0) {
-		fprintf(stderr, "Could not get filesystem info.\n");
-		return smprintf(unknowntext);
+		warn("Could not get filesystem info");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* calculate percent */
 	perc = 100 * (1.0f - ((float)fs.f_bfree / (float)fs.f_blocks));
-
-	/* return perc */
 	return smprintf("%d%%", perc);
 }
 
-/* disk total */
-char *
+static char *
 disk_total(const char *mountpoint)
 {
 	struct statvfs fs;
 
-	/* try to open mountpoint */
 	if (statvfs(mountpoint, &fs) < 0) {
-		fprintf(stderr, "Could not get filesystem info.\n");
-		return smprintf(unknowntext);
+		warn("Could not get filesystem info");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* return total */
 	return smprintf("%f", (float)fs.f_bsize * (float)fs.f_blocks / 1024 / 1024 / 1024);
 }
 
-/* disk used */
-char *
+static char *
 disk_used(const char *mountpoint)
 {
 	struct statvfs fs;
 
-	/* try to open mountpoint */
 	if (statvfs(mountpoint, &fs) < 0) {
-		fprintf(stderr, "Could not get filesystem info.\n");
-		return smprintf(unknowntext);
+		warn("Could not get filesystem info");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* return used */
 	return smprintf("%f", (float)fs.f_bsize * ((float)fs.f_blocks - (float)fs.f_bfree) / 1024 / 1024 / 1024);
 }
 
-/* entropy available */
-char *
-entropy(const char *null)
+static char *
+entropy(void)
 {
 	int entropy = 0;
-	FILE *fp;
+	FILE *fp = fopen("/proc/sys/kernel/random/entropy_avail", "r");
 
-	/* open entropy file */
-	if (!(fp = fopen("/proc/sys/kernel/random/entropy_avail", "r"))) {
-		fprintf(stderr, "Could not open entropy file.\n");
-		return smprintf(unknowntext);
+	if (fp == NULL) {
+		warn("Could not open entropy file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* extract entropy */
 	fscanf(fp, "%d", &entropy);
-
-	/* close entropy file */
 	fclose(fp);
-
-	/* return entropy */
 	return smprintf("%d", entropy);
 }
 
-/* gid */
-char *
-gid(const char *null)
+static char *
+gid(void)
 {
-	gid_t gid;
-
-	if ((gid = getgid()) < 0) {
-		fprintf(stderr, "Could no get gid.\n");
-		return smprintf(unknowntext);
-	} else {
-		return smprintf("%d", gid);
-	}
-
-	return smprintf(unknowntext);
+	return smprintf("%d", getgid());
 }
 
-/* hostname */
-char *
-hostname(const char *null)
+static char *
+hostname(void)
 {
 	char hostname[HOST_NAME_MAX];
-	FILE *fp;
+	FILE *fp = fopen("/proc/sys/kernel/hostname", "r");
 
-	/* open hostname file */
-	if (!(fp = fopen("/proc/sys/kernel/hostname", "r"))) {
-		fprintf(stderr, "Could not open hostname file.\n");
-		return smprintf(unknowntext);
+	if (fp == NULL) {
+		warn("Could not open hostname file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* extract hostname */
-	fscanf(fp, "%s\n", hostname);
-
-	/* close hostname file */
+	fgets(hostname, sizeof(hostname), fp);
+	/* FIXME: needs improvement */
+	memset(&hostname[strlen(hostname)-1], '\0',
+		sizeof(hostname) - strlen(hostname));
 	fclose(fp);
-
-	/* return entropy */
 	return smprintf("%s", hostname);
 }
 
-/* ip address */
-char *
+static char *
 ip(const char *interface)
 {
 	struct ifaddrs *ifaddr, *ifa;
 	int s;
 	char host[NI_MAXHOST];
 
-	/* check if getting ip address works */
 	if (getifaddrs(&ifaddr) == -1) {
-		fprintf(stderr, "Error getting IP address.\n");
-		return smprintf(unknowntext);
+		warn("Error getting IP address");
+		return smprintf(UNKNOWN_STR);
 	}
 
 	/* get the ip address */
 	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-		if (ifa->ifa_addr == NULL) {
+		if (ifa->ifa_addr == NULL)
 			continue;
-		}
 
-		s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+		s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST,
+								NULL, 0, NI_NUMERICHOST);
 
 		if ((strcmp(ifa->ifa_name, interface) == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
 			if (s != 0) {
-				fprintf(stderr, "Error getting IP address.\n");
-				return smprintf(unknowntext);
+				warnx("Error getting IP address.");
+				return smprintf(UNKNOWN_STR);
 			}
 			return smprintf("%s", host);
 		}
@@ -378,437 +292,306 @@ ip(const char *interface)
 	/* free the address */
 	freeifaddrs(ifaddr);
 
-	return smprintf(unknowntext);
+	return smprintf(UNKNOWN_STR);
 }
 
-/* load avg */
-char *
-load_avg(const char *null)
+static char *
+load_avg(void)
 {
 	double avgs[3];
 
-	/* try to get load avg */
 	if (getloadavg(avgs, 3) < 0) {
-		fprintf(stderr, "Error getting load avg.\n");
-		return smprintf(unknowntext);
+		warnx("Error getting load avg.");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* return it */
 	return smprintf("%.2f %.2f %.2f", avgs[0], avgs[1], avgs[2]);
 }
 
-/* ram free */
-char *
-ram_free(const char *null)
+static char *
+ram_free(void)
 {
 	long free;
-	FILE *fp;
+	FILE *fp = fopen("/proc/meminfo", "r");
 
-	/* open meminfo file */
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.\n");
-		return smprintf(unknowntext);
+	if (fp == NULL) {
+		warn("Error opening meminfo file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* read the values */
 	fscanf(fp, "MemFree: %ld kB\n", &free);
-
-	/* close meminfo file */
 	fclose(fp);
-
-	/* return free ram as string */
 	return smprintf("%f", (float)free / 1024 / 1024);
 }
 
-/* ram percentage */
-char *
-ram_perc(const char *null)
+static char *
+ram_perc(void)
 {
 	int perc;
 	long total, free, buffers, cached;
-	FILE *fp;
+	FILE *fp = fopen("/proc/meminfo", "r");
 
-	/* open meminfo file */
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.\n");
-		return smprintf(unknowntext);
+	if (fp == NULL) {
+		warn("Error opening meminfo file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* read the values */
 	fscanf(fp, "MemTotal: %ld kB\n", &total);
 	fscanf(fp, "MemFree: %ld kB\n", &free);
 	fscanf(fp, "MemAvailable: %ld kB\nBuffers: %ld kB\n", &buffers, &buffers);
 	fscanf(fp, "Cached: %ld kB\n", &cached);
 
-	/* close meminfo file */
 	fclose(fp);
-
-	/* calculate percentage */
 	perc = 100 * ((total - free) - (buffers + cached)) / total;
-
-	/* return perc as string */
 	return smprintf("%d%%", perc);
 }
 
-/* ram total */
-char *
-ram_total(const char *null)
+static char *
+ram_total(void)
 {
 	long total;
-	FILE *fp;
+	FILE *fp = fopen("/proc/meminfo", "r");
 
-	/* open meminfo file */
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.\n");
-		return smprintf(unknowntext);
+	if (fp == NULL) {
+		warn("Error opening meminfo file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* read the values */
 	fscanf(fp, "MemTotal: %ld kB\n", &total);
-
-	/* close meminfo file */
 	fclose(fp);
-
-	/* return total ram as string */
 	return smprintf("%f", (float)total / 1024 / 1024);
 }
 
-/* ram used */
-char *
-ram_used(const char *null)
+static char *
+ram_used(void)
 {
 	long free, total, buffers, cached, used;
-	FILE *fp;
+	FILE *fp = fopen("/proc/meminfo", "r");
 
-	/* open meminfo file */
-	if (!(fp = fopen("/proc/meminfo", "r"))) {
-		fprintf(stderr, "Error opening meminfo file.\n");
-		return smprintf(unknowntext);
+	if (fp == NULL) {
+		warn("Error opening meminfo file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* read the values */
 	fscanf(fp, "MemTotal: %ld kB\n", &total);
 	fscanf(fp, "MemFree: %ld kB\n", &free);
 	fscanf(fp, "MemAvailable: %ld kB\nBuffers: %ld kB\n", &buffers, &buffers);
 	fscanf(fp, "Cached: %ld kB\n", &cached);
 
-	/* close meminfo file */
 	fclose(fp);
-
-	/* calculate used */
 	used = total - free - buffers - cached;
-
-	/* return used ram as string */
 	return smprintf("%f", (float)used / 1024 / 1024);
 }
 
-/* custom shell command */
-char *
+static char *
 run_command(const char* command)
 {
 	int good;
-	FILE *fp;
+	FILE *fp = popen(command, "r");
 	char buffer[64];
 
-	/* try to open the command output */
-	if (!(fp = popen(command, "r"))) {
-		fprintf(stderr, "Could not get command output for: %s.\n", command);
-		return smprintf(unknowntext);
+	if (fp == NULL) {
+		warn("Could not get command output for: %s", command);
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* get command output text, save it to buffer */
-	fgets(buffer, sizeof(buffer) - 1, fp);
-
-	/* close it again */
+	fgets(buffer, sizeof(buffer)-1, fp);
 	pclose(fp);
-
-	/* add nullchar at the end */
 	for (int i = 0 ; i != sizeof(buffer); i++) {
 		if (buffer[i] == '\0') {
 			good = 1;
 			break;
 		}
 	}
-	if (good) {
-		buffer[strlen(buffer) - 1] = '\0';
-	}
-
-	/* return the output */
+	if (good)
+		buffer[strlen(buffer)-1] = '\0';
 	return smprintf("%s", buffer);
 }
 
-/* temperature */
-char *
+static char *
 temp(const char *file)
 {
 	int temperature;
-	FILE *fp;
+	FILE *fp = fopen(file, "r");
 
-	/* open temperature file */
-	if (!(fp = fopen(file, "r"))) {
-		fprintf(stderr, "Could not open temperature file.\n");
-		return smprintf(unknowntext);
+	if (fp == NULL) {
+		warn("Could not open temperature file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* extract temperature */
 	fscanf(fp, "%d", &temperature);
-
-	/* close temperature file */
 	fclose(fp);
-
-	/* return temperature in degrees */
 	return smprintf("%d°C", temperature / 1000);
 }
 
-/* uptime */
-char *
-uptime(const char *null)
+static char *
+uptime(void)
 {
 	struct sysinfo info;
 	int hours = 0;
 	int minutes = 0;
 
-	/* get info */
 	sysinfo(&info);
 	hours = info.uptime / 3600;
 	minutes = (info.uptime - hours * 3600 ) / 60;
 
-	/* return it */
 	return smprintf("%dh %dm", hours, minutes);
 }
 
-/* username */
-char *
-username(const char *null)
+static char *
+username(void)
 {
-	register struct passwd *pw;
-	register uid_t uid;
+	uid_t uid = geteuid();
+	struct passwd *pw = getpwuid(uid);
 
-	/* get the values */
-	uid = geteuid();
-	pw = getpwuid(uid);
-
-	/* if it worked, return */
-	if (pw) {
+	if (pw == NULL)
 		return smprintf("%s", pw->pw_name);
-	} else {
-		fprintf(stderr, "Could not get username.\n");
-		return smprintf(unknowntext);
-	}
 
-	return smprintf(unknowntext);
+	warn("Could not get username");
+	return smprintf(UNKNOWN_STR);
 }
 
-/* uid */
-char *
-uid(const char *null)
+static char *
+uid(void)
 {
-	register uid_t uid;
-
-	/* get the values */
-	uid = geteuid();
-
-	/* if it worked, return */
-	if (uid) {
-		return smprintf("%d", uid);
-	} else {
-		fprintf(stderr, "Could not get uid.\n");
-		return smprintf(unknowntext);
-	}
-
-	return smprintf(unknowntext);
+	return smprintf("%d", geteuid());
 }
 
 
-/* alsa volume percentage */
-char *
-vol_perc(const char *soundcard)
-{
-	int mute = 0;
-	long vol = 0, max = 0, min = 0;
+static char * 
+vol_perc(const char *snd_card)
+{ /* thanks to botika for this function */
+	long int vol, max, min;
 	snd_mixer_t *handle;
-	snd_mixer_elem_t *pcm_mixer, *mas_mixer;
-	snd_mixer_selem_id_t *vol_info, *mute_info;
+	snd_mixer_elem_t *elem;
+	snd_mixer_selem_id_t *s_elem;
 
-	/* open everything */
 	snd_mixer_open(&handle, 0);
-	snd_mixer_attach(handle, soundcard);
+	snd_mixer_attach(handle, "default");
 	snd_mixer_selem_register(handle, NULL, NULL);
 	snd_mixer_load(handle);
+	snd_mixer_selem_id_malloc(&s_elem);
+	snd_mixer_selem_id_set_name(s_elem, snd_card);
+	elem = snd_mixer_find_selem(handle, s_elem);
 
-	/* prepare everything */
-	snd_mixer_selem_id_malloc(&vol_info);
-	snd_mixer_selem_id_malloc(&mute_info);
-	/* check */
-	if (vol_info == NULL || mute_info == NULL) {
-		fprintf(stderr, "Could not get alsa volume.\n");
-		return smprintf(unknowntext);
-	}
-	snd_mixer_selem_id_set_name(vol_info, channel);
-	snd_mixer_selem_id_set_name(mute_info, channel);
-	pcm_mixer = snd_mixer_find_selem(handle, vol_info);
-	mas_mixer = snd_mixer_find_selem(handle, mute_info);
-
-	/* get the info */
-	snd_mixer_selem_get_playback_volume_range((snd_mixer_elem_t *)pcm_mixer, &min, &max);
-	snd_mixer_selem_get_playback_volume((snd_mixer_elem_t *)pcm_mixer, SND_MIXER_SCHN_MONO, &vol);
-	snd_mixer_selem_get_playback_switch(mas_mixer, SND_MIXER_SCHN_MONO, &mute);
-
-	/* clean up */
-	if (vol_info) {
-		snd_mixer_selem_id_free(vol_info);
-	}
-	if (mute_info) {
-		snd_mixer_selem_id_free(mute_info);
-	}
-	if (handle) {
+	if (elem == NULL) {
+		snd_mixer_selem_id_free(s_elem);
 		snd_mixer_close(handle);
+		perror("alsa error");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* return the string (mute) */
-	if (!mute) {
-		return smprintf("mute");
-	} else {
-		return smprintf("%d%%", (vol * 100) / max);
-	}
+	snd_mixer_handle_events(handle);
+	snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+	snd_mixer_selem_get_playback_volume(elem, 0, &vol);
+
+	snd_mixer_selem_id_free(s_elem);
+	snd_mixer_close(handle);
+
+	return smprintf("%d", (vol * 100) / max);
 }
 
-/* wifi percentage */
-char *
+static char *
 wifi_perc(const char *wificard)
 {
-	int bufsize = 255;
 	int strength;
-	char buf[bufsize];
+	char buf[255];
 	char *datastart;
-	char path[64];
 	char status[5];
-	char needle[sizeof wificard + 1];
 	FILE *fp;
 
-	/* generate the path name */
-	memset(path, 0, sizeof path);
-	strcat(path, "/sys/class/net/");
-	strcat(path, wificard);
-	strcat(path, "/operstate");
+	ccat(3, "/sys/class/net", wificard, "/operstate");
 
-	/* open wifi file */
-	if(!(fp = fopen(path, "r"))) {
-		fprintf(stderr, "Error opening wifi operstate file.\n");
-		return smprintf(unknowntext);
+	fp = fopen(concat, "r");
+
+	if(fp == NULL) {
+		warn("Error opening wifi operstate file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* read the status */
 	fgets(status, 5, fp);
-
-	/* close wifi file */
 	fclose(fp);
+	if(strcmp(status, "up\n") != 0)
+		return smprintf(UNKNOWN_STR);
 
-	/* check if interface down */
-	if(strcmp(status, "up\n") != 0) {
-		return smprintf(unknowntext);
+	fp = fopen("/proc/net/wireless", "r");
+	if (fp == NULL) {
+		warn("Error opening wireless file");
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* open wifi file */
-	if (!(fp = fopen("/proc/net/wireless", "r"))) {
-		fprintf(stderr, "Error opening wireless file.\n");
-		return smprintf(unknowntext);
-	}
+	ccat(2, wificard, ":");
+	fgets(buf, sizeof(buf), fp);
+	fgets(buf, sizeof(buf), fp);
+	fgets(buf, sizeof(buf), fp);
 
-	/* extract the signal strength */
-	strcpy(needle, wificard);
-	strcat(needle, ":");
-	fgets(buf, bufsize, fp);
-	fgets(buf, bufsize, fp);
-	fgets(buf, bufsize, fp);
-	if ((datastart = strstr(buf, needle)) != NULL) {
+	datastart = strstr(buf, concat);
+	if (datastart != NULL) {
 		datastart = strstr(buf, ":");
 		sscanf(datastart + 1, " %*d   %d  %*d  %*d		  %*d	   %*d		%*d		 %*d	  %*d		 %*d", &strength);
 	}
 
-	/* close wifi file */
 	fclose(fp);
-
-	/* return strength in percent */
 	return smprintf("%d%%", strength);
 }
 
-/* wifi essid */
-char *
+static char *
 wifi_essid(const char *wificard)
 {
 	char id[IW_ESSID_MAX_SIZE+1];
-	int sockfd;
+	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	struct iwreq wreq;
 
-	/* prepare */
 	memset(&wreq, 0, sizeof(struct iwreq));
 	wreq.u.essid.length = IW_ESSID_MAX_SIZE+1;
-
-	/* set the interface */
 	sprintf(wreq.ifr_name, wificard);
-
-	/* check */
-	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-		fprintf(stderr, "Cannot open socket for interface: %s\n", wificard);
-		return smprintf(unknowntext);
+	if(sockfd == -1) {
+		warn("Cannot open socket for interface: %s", wificard);
+		return smprintf(UNKNOWN_STR);
 	}
 	wreq.u.essid.pointer = id;
 	if (ioctl(sockfd,SIOCGIWESSID, &wreq) == -1) {
-		fprintf(stderr, "Get ESSID ioctl failed for interface %s\n", wificard);
-		return smprintf(unknowntext);
+		warn("Get ESSID ioctl failed for interface %s", wificard);
+		return smprintf(UNKNOWN_STR);
 	}
 
-	/* return the essid */
-	if (strcmp((char *)wreq.u.essid.pointer, "") == 0) {
-		return smprintf(unknowntext);
-	} else {
+	if (strcmp((char *)wreq.u.essid.pointer, "") == 0)
+		return smprintf(UNKNOWN_STR);
+	else
 		return smprintf("%s", (char *)wreq.u.essid.pointer);
-	}
 }
 
-/* main function */
 int
 main(void)
 {
-	char status_string[1024];
+	size_t i;
+	char status_string[4096];
+	char *res, *element;
 	struct arg argument;
 
-	/* try to open display */
-	if (!(dpy = XOpenDisplay(0x0))) {
-		fprintf(stderr, "Cannot open display!\n");
-		exit(1);
-	}
+	dpy = XOpenDisplay(NULL);
 
-	/* return status every interval */
 	for (;;) {
-		/* clear the string */
 		memset(status_string, 0, sizeof(status_string));
-
-		/* generate status_string */
-		for (size_t i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
+		for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
 			argument = args[i];
-			char *res = argument.func(argument.args);
-			char *element = smprintf(argument.format, res);
+			if (argument.args == NULL)
+				res = argument.func();
+			else
+				res = argument.func(argument.args);
+			element = smprintf(argument.format, res);
 			if (element == NULL) {
-				element = smprintf(unknowntext);
-				fprintf(stderr, "Failed to format output.\n");
+				element = smprintf(UNKNOWN_STR);
+				warnx("Failed to format output.");
 			}
-			strcat(status_string, element);
+			strlcat(status_string, element, sizeof(status_string));
 			free(res);
 			free(element);
 		}
-
-		/* return the statusbar */
-		setstatus(status_string);
-
-		/* wait, "update_interval - 1" because of get_cpu_usage() which uses 1 second */
-		sleep(update_interval -1);
+		XStoreName(dpy, DefaultRootWindow(dpy), status_string);
+		XSync(dpy, False);
 	}
-
-	/* close display */
 	XCloseDisplay(dpy);
 
-	/* exit successfully */
 	return 0;
 }
