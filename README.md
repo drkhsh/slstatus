@@ -1,5 +1,4 @@
-slstatus
-========
+![slstatus](slstatus.png)
 
 **slstatus** is a suckless and lightweight status monitor for window managers that use WM_NAME as statusbar (e.g. DWM). It is written in pure C without any system calls and only reads from files most of the time. It is meant to be a better alternative to Bash scripts (inefficient) and Conky (bloated for this use).
 
