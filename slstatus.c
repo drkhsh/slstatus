@@ -126,7 +126,7 @@ battery_perc(const char *battery)
 
 static char *
 cpu_perc(void)
-{
+{ /* FIXME: ugly function, would be better without sleep(), see below */
 	int perc;
 	long double a[4], b[4];
 	FILE *fp = fopen("/proc/stat","r");
@@ -601,7 +601,9 @@ main(void)
 		}
 		XStoreName(dpy, DefaultRootWindow(dpy), status_string);
 		XSync(dpy, False);
+		sleep(UPDATE_INTERVAL - 1); /* FIXME: ugly cpu function which uses 1 second */
 	}
+
 	XCloseDisplay(dpy);
 
 	return 0;
