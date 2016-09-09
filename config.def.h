@@ -1,18 +1,15 @@
 /* See LICENSE file for copyright and license details. */
 
 /* alsa sound */
-static const char channel[]         = "Master";
+#define ALSA_CHANNEL	"Master"
 
 /* battery */
-static const char batterypath[]     = "/sys/class/power_supply/";
-static const char batterynow[]      = "energy_now";
-static const char batteryfull[]     = "energy_full_design";
-
-/* bar update interval in seconds (smallest value = 1) */
-static unsigned int update_interval = 1;
+#define BATTERY_PATH	"/sys/class/power_supply/"
+#define BATTERY_NOW	"energy_now"
+#define BATTERY_FULL	"energy_full_design"
 
 /* text to show if no value can be retrieved */
-static const char unknowntext[] = "n/a";
+#define UNKNOWN_STR	"n/a"
 
 /* statusbar
 - battery_perc (battery percentage) [argument: battery name]
@@ -40,13 +37,9 @@ static const char unknowntext[] = "n/a";
 - wifi_perc (wifi signal in percent) [argument: wifi card interface name]
 - wifi_essid (wifi essid) [argument: wifi card interface name] */
 static const struct arg args[] = {
-	/* function     format          argument */
-	{ wifi_perc,    "wifi %4s | ",  "wlp3s0" },
-	{ battery_perc, "bat %4s | ",   "BAT0" },
-	{ cpu_perc,     "cpu %4s ",     NULL },
-	{ temp,         "%3s | ",       "/sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input" },
-	{ ram_perc,     "ram %3s | ",   NULL },
-	{ vol_perc,     "vol %4s | ",   "default" },
-	{ disk_perc,    "ssd %3s | ",   "/" },
-	{ datetime,     "%s",           "%y-%m-%d %H:%M:%S" },
+	/* function	format			argument */
+	{ cpu_perc,	"[ CPU %4s ]",		NULL },
+	{ ram_perc,	"[ Mem %3s ]",		NULL },
+	{ disk_perc,	"[ HDD %3s ]",		"/" },
+	{ datetime,	"[ %s ]",		"%F %T" },
 };

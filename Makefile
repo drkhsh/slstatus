@@ -2,6 +2,8 @@
 
 include config.mk
 
+NAME=slstatus
+
 SRC = ${NAME}.c
 OBJ = ${SRC:.c=.o}
 
