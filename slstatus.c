@@ -397,7 +397,7 @@ run_command(const char* command)
 {
 	int good;
 	FILE *fp = popen(command, "r");
-	char buffer[64];
+	char buffer[64] = "";
 
 	if (fp == NULL) {
 		warn("Could not get command output for: %s", command);
