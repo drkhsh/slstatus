@@ -1,15 +1,15 @@
 /* See LICENSE file for copyright and license details. */
 
 /* alsa sound */
-#define ALSA_CHANNEL	"Master"
+#define ALSA_CHANNEL "Master"
 
 /* battery */
-#define BATTERY_PATH	"/sys/class/power_supply/"
-#define BATTERY_NOW	"energy_now"
-#define BATTERY_FULL	"energy_full_design"
+#define BATTERY_PATH "/sys/class/power_supply/"
+#define BATTERY_NOW  "energy_now"
+#define BATTERY_FULL "energy_full_design"
 
 /* text to show if no value can be retrieved */
-#define UNKNOWN_STR	"n/a"
+#define UNKNOWN_STR  "n/a"
 
 /* statusbar
 - battery_perc (battery percentage) [argument: battery name]
@@ -38,8 +38,7 @@
 - wifi_essid (wifi essid) [argument: wifi card interface name] */
 static const struct arg args[] = {
 	/* function	format			argument */
-	{ cpu_perc,	"[ CPU %4s ]",		NULL },
-	{ ram_perc,	"[ Mem %3s ]",		NULL },
-	{ disk_perc,	"[ HDD %3s ]",		"/" },
-	{ datetime,	"[ %s ]",		"%F %T" },
+	{ cpu_perc, "[ CPU %4s ]",  NULL },
+	{ ram_perc, "[ Mem %3s ]",  NULL },
+	{ datetime, "[ %s ]",       "%F %T" },
 };

@@ -150,6 +150,7 @@ cpu_perc(void)
 	fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &b[0], &b[1], &b[2], &b[3]);
 	fclose(fp);
 	perc = 100 * ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
+
 	return smprintf("%d%%", perc);
 }
 
@@ -175,6 +176,7 @@ disk_free(const char *mountpoint)
 		warn("Could not get filesystem info");
 		return smprintf(UNKNOWN_STR);
 	}
+
 	return smprintf("%f", (float)fs.f_bsize * (float)fs.f_bfree / 1024 / 1024 / 1024);
 }
 
@@ -190,6 +192,7 @@ disk_perc(const char *mountpoint)
 	}
 
 	perc = 100 * (1.0f - ((float)fs.f_bfree / (float)fs.f_blocks));
+
 	return smprintf("%d%%", perc);
 }
 
@@ -232,6 +235,7 @@ entropy(void)
 
 	fscanf(fp, "%d", &entropy);
 	fclose(fp);
+
 	return smprintf("%d", entropy);
 }
 
@@ -257,6 +261,7 @@ hostname(void)
 	memset(&hostname[strlen(hostname)-1], '\0',
 		sizeof(hostname) - strlen(hostname));
 	fclose(fp);
+
 	return smprintf("%s", hostname);
 }
 
@@ -321,6 +326,7 @@ ram_free(void)
 
 	fscanf(fp, "MemFree: %ld kB\n", &free);
 	fclose(fp);
+
 	return smprintf("%f", (float)free / 1024 / 1024);
 }
 
@@ -343,6 +349,7 @@ ram_perc(void)
 
 	fclose(fp);
 	perc = 100 * ((total - free) - (buffers + cached)) / total;
+
 	return smprintf("%d%%", perc);
 }
 
@@ -359,6 +366,7 @@ ram_total(void)
 
 	fscanf(fp, "MemTotal: %ld kB\n", &total);
 	fclose(fp);
+
 	return smprintf("%f", (float)total / 1024 / 1024);
 }
 
@@ -380,6 +388,7 @@ ram_used(void)
 
 	fclose(fp);
 	used = total - free - buffers - cached;
+
 	return smprintf("%f", (float)used / 1024 / 1024);
 }
 
@@ -405,6 +414,7 @@ run_command(const char* command)
 	}
 	if (good)
 		buffer[strlen(buffer)-1] = '\0';
+
 	return smprintf("%s", buffer);
 }
 
@@ -421,6 +431,7 @@ temp(const char *file)
 
 	fscanf(fp, "%d", &temperature);
 	fclose(fp);
+
 	return smprintf("%d°C", temperature / 1000);
 }
 
@@ -532,6 +543,7 @@ wifi_perc(const char *wificard)
 	}
 
 	fclose(fp);
+
 	return smprintf("%d%%", strength);
 }
 
