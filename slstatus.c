@@ -277,7 +277,6 @@ ip(const char *interface)
 		return smprintf(UNKNOWN_STR);
 	}
 
-	/* get the ip address */
 	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
 		if (ifa->ifa_addr == NULL)
 			continue;
@@ -294,7 +293,6 @@ ip(const char *interface)
 		}
 	}
 
-	/* free the address */
 	freeifaddrs(ifaddr);
 
 	return smprintf(UNKNOWN_STR);
