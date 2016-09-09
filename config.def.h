@@ -1,15 +1,18 @@
 /* See LICENSE file for copyright and license details. */
 
 /* alsa sound */
-#define ALSA_CHANNEL "Master"
+#define ALSA_CHANNEL    "Master"
 
 /* battery */
-#define BATTERY_PATH "/sys/class/power_supply/"
-#define BATTERY_NOW  "energy_now"
-#define BATTERY_FULL "energy_full_design"
+#define BATTERY_PATH    "/sys/class/power_supply/"
+#define BATTERY_NOW     "energy_now"
+#define BATTERY_FULL    "energy_full_design"
+
+/* how often to update the statusbar (min value == 1) */
+#define UPDATE_INTERVAL 1
 
 /* text to show if no value can be retrieved */
-#define UNKNOWN_STR  "n/a"
+#define UNKNOWN_STR     "n/a"
 
 /* statusbar
 - battery_perc (battery percentage) [argument: battery name]
