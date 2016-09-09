@@ -455,11 +455,12 @@ username(void)
 	uid_t uid = geteuid();
 	struct passwd *pw = getpwuid(uid);
 
-	if (pw == NULL)
-		return smprintf("%s", pw->pw_name);
+	if (pw == NULL) {
+		warn("Could not get username");
+		return smprintf(UNKNOWN_STR);
+	}
 
-	warn("Could not get username");
-	return smprintf(UNKNOWN_STR);
+	return smprintf("%s", pw->pw_name);
 }
 
 static char *
