@@ -37,6 +37,8 @@ struct arg {
 	const char *args;
 };
 
+static unsigned short int delay;
+
 static char *smprintf(const char *, ...);
 static char *battery_perc(const char *);
 static char *cpu_perc(void);
@@ -126,7 +128,7 @@ battery_perc(const char *battery)
 
 static char *
 cpu_perc(void)
-{ /* FIXME: ugly function, would be better without sleep(), see below */
+{
 	int perc;
 	long double a[4], b[4];
 	FILE *fp = fopen("/proc/stat","r");
@@ -139,7 +141,8 @@ cpu_perc(void)
 	fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &a[0], &a[1], &a[2], &a[3]);
 	fclose(fp);
 
-	sleep(1);
+	delay = (UPDATE_INTERVAL - (UPDATE_INTERVAL - 1));
+	sleep(delay);
 
 	fp = fopen("/proc/stat","r");
 	if (fp == NULL) {
@@ -470,7 +473,7 @@ uid(void)
 
 static char * 
 vol_perc(const char *snd_card)
-{ /* thanks to botika for this function */
+{ /* FIX THIS SHIT! */
 	long int vol, max, min;
 	snd_mixer_t *handle;
 	snd_mixer_elem_t *elem;
@@ -601,7 +604,12 @@ main(void)
 		}
 		XStoreName(dpy, DefaultRootWindow(dpy), status_string);
 		XSync(dpy, False);
-		sleep(UPDATE_INTERVAL - 1); /* FIXME: ugly cpu function which uses 1 second */
+		/*
+		 * subtract delay time spend in function
+		 * calls from the actual global delay time
+		 */
+		sleep(UPDATE_INTERVAL - delay);
+		delay = 0;
 	}
 
 	XCloseDisplay(dpy);
