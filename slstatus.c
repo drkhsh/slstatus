@@ -480,17 +480,17 @@ vol_perc(const char *snd_card)
 	snd_mixer_selem_id_t *s_elem;
 
 	snd_mixer_open(&handle, 0);
-	snd_mixer_attach(handle, "default");
+	snd_mixer_attach(handle, snd_card);
 	snd_mixer_selem_register(handle, NULL, NULL);
 	snd_mixer_load(handle);
 	snd_mixer_selem_id_malloc(&s_elem);
-	snd_mixer_selem_id_set_name(s_elem, snd_card);
+	snd_mixer_selem_id_set_name(s_elem, ALSA_CHANNEL);
 	elem = snd_mixer_find_selem(handle, s_elem);
 
 	if (elem == NULL) {
 		snd_mixer_selem_id_free(s_elem);
 		snd_mixer_close(handle);
-		perror("alsa error");
+		warn("error: ALSA");
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -501,7 +501,7 @@ vol_perc(const char *snd_card)
 	snd_mixer_selem_id_free(s_elem);
 	snd_mixer_close(handle);
 
-	return smprintf("%d", (vol * 100) / max);
+	return smprintf("%d", ((uint_fast16_t)(vol * 100) / max));
 }
 
 static char *
