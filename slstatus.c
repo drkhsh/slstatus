@@ -260,7 +260,7 @@ hostname(void)
 
 	fgets(hostname, sizeof(hostname), fp);
 	/* FIXME: needs improvement */
-	memset(&hostname[strlen(hostname)-1], '\0',
+	memset(&hostname[strlen(hostname)], '\0',
 		sizeof(hostname) - strlen(hostname));
 	fclose(fp);
 
