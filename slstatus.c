@@ -510,7 +510,7 @@ wifi_perc(const char *wificard)
 	char status[5];
 	FILE *fp;
 
-	ccat(3, "/sys/class/net", wificard, "/operstate");
+	ccat(3, "/sys/class/net/", wificard, "/operstate");
 
 	fp = fopen(concat, "r");
 
