@@ -37,8 +37,6 @@ struct arg {
 	const char *args;
 };
 
-static unsigned short int delay;
-
 static char *smprintf(const char *, ...);
 static char *battery_perc(const char *);
 static char *cpu_perc(void);
@@ -65,6 +63,7 @@ static char *vol_perc(const char *);
 static char *wifi_perc(const char *);
 static char *wifi_essid(const char *);
 
+static unsigned short int delay;
 static Display *dpy;
 
 #include "config.h"
