@@ -8,6 +8,7 @@
 
 /* statusbar
 - battery_perc (battery percentage) [argument: battery name]
+- battery_state (battery charging state) [argument: battery name]
 - cpu_perc (cpu usage in percent) [argument: NULL]
 - datetime (date and time) [argument: format]
 - disk_free (disk usage in percent) [argument: mountpoint]
