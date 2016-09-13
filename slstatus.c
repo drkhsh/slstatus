@@ -580,7 +580,7 @@ wifi_essid(const char *wificard)
 }
 
 static void
-sighandler(int signo)
+sighandler(const int signo)
 {
 	if (signo == SIGTERM || signo == SIGINT) {
 		done = 1;
