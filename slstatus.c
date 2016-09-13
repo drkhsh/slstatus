@@ -592,7 +592,7 @@ main(void)
 {
 	size_t i;
 	char status_string[4096];
-	char *res, *element;
+	char *res, *element, *status_old;
 	struct arg argument;
 	struct sigaction act;
 
@@ -602,6 +602,8 @@ main(void)
 	sigaction(SIGTERM, &act, 0);
 
 	dpy = XOpenDisplay(NULL);
+
+	XFetchName(dpy, DefaultRootWindow(dpy), &status_old);
 
 	while (!done) {
 		status_string[0] = '\0';
@@ -629,6 +631,9 @@ main(void)
 		sleep(UPDATE_INTERVAL - delay);
 		delay = 0;
 	}
+
+	XStoreName(dpy, DefaultRootWindow(dpy), status_old);
+	XSync(dpy, False);
 
 	XCloseDisplay(dpy);
 
