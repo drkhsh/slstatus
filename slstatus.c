@@ -460,14 +460,14 @@ uid(void)
 
 static char *
 vol_perc(const char *soundcard)
-{ /* FIX THIS SHIT! */
+{
 	long int vol, max, min;
 	snd_mixer_t *handle;
 	snd_mixer_elem_t *elem;
 	snd_mixer_selem_id_t *s_elem;
 
 	snd_mixer_open(&handle, 0);
-	snd_mixer_attach(handle, snd_card);
+	snd_mixer_attach(handle, soundcard);
 	snd_mixer_selem_register(handle, NULL, NULL);
 	snd_mixer_load(handle);
 	snd_mixer_selem_id_malloc(&s_elem);
@@ -477,7 +477,7 @@ vol_perc(const char *soundcard)
 	if (elem == NULL) {
 		snd_mixer_selem_id_free(s_elem);
 		snd_mixer_close(handle);
-		warn("error: ALSA");
+		warn("Failed to get volume percentage for: %s.", soundcard);
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -488,7 +488,7 @@ vol_perc(const char *soundcard)
 	snd_mixer_selem_id_free(s_elem);
 	snd_mixer_close(handle);
 
-	return smprintf("%d", ((uint_fast16_t)(vol * 100) / max));
+	return smprintf("%d%%", ((uint_fast16_t)(vol * 100) / max));
 }
 
 static char *
