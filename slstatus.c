@@ -587,7 +587,7 @@ main(void)
 	dpy = XOpenDisplay(NULL);
 
 	for (;;) {
-		memset(status_string, 0, sizeof(status_string));
+		status_string[0] = '\0';
 		for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
 			argument = args[i];
 			if (argument.args == NULL)
