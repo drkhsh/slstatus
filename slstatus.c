@@ -8,6 +8,7 @@
 #include <linux/wireless.h>
 #include <netdb.h>
 #include <pwd.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,9 +63,11 @@ static char *username(void);
 static char *vol_perc(const char *);
 static char *wifi_perc(const char *);
 static char *wifi_essid(const char *);
+static void sighandler(const int);
 
 static unsigned short int delay;
 static Display *dpy;
+static int done = 0;
 
 #include "config.h"
 
@@ -470,7 +473,7 @@ uid(void)
 }
 
 
-static char * 
+static char *
 vol_perc(const char *snd_card)
 { /* FIX THIS SHIT! */
 	long int vol, max, min;
@@ -516,7 +519,7 @@ wifi_perc(const char *wificard)
 
 	fp = fopen(concat, "r");
 
-	if(fp == NULL) {
+	if (fp == NULL) {
 		warn("Error opening wifi operstate file");
 		return smprintf(UNKNOWN_STR);
 	}
@@ -558,7 +561,7 @@ wifi_essid(const char *wificard)
 	memset(&wreq, 0, sizeof(struct iwreq));
 	wreq.u.essid.length = IW_ESSID_MAX_SIZE+1;
 	sprintf(wreq.ifr_name, wificard);
-	if(sockfd == -1) {
+	if (sockfd == -1) {
 		warn("Cannot open socket for interface: %s", wificard);
 		return smprintf(UNKNOWN_STR);
 	}
@@ -576,6 +579,14 @@ wifi_essid(const char *wificard)
 		return smprintf("%s", (char *)wreq.u.essid.pointer);
 }
 
+static void
+sighandler(int signo)
+{
+	if (signo == SIGTERM || signo == SIGINT) {
+		done = 1;
+	}
+}
+
 int
 main(void)
 {
@@ -583,10 +594,16 @@ main(void)
 	char status_string[4096];
 	char *res, *element;
 	struct arg argument;
+	struct sigaction act;
+
+	memset(&act, 0, sizeof(act));
+	act.sa_handler = sighandler;
+	sigaction(SIGINT,  &act, 0);
+	sigaction(SIGTERM, &act, 0);
 
 	dpy = XOpenDisplay(NULL);
 
-	for (;;) {
+	while (!done) {
 		status_string[0] = '\0';
 		for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
 			argument = args[i];
