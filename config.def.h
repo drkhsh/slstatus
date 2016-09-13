@@ -1,8 +1,5 @@
 /* See LICENSE file for copyright and license details. */
 
-/* alsa sound */
-#define ALSA_CHANNEL    "Master"
-
 /* how often to update the statusbar (min value == 1) */
 #define UPDATE_INTERVAL 1
 
