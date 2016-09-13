@@ -568,6 +568,8 @@ wifi_essid(const char *wificard)
 		return smprintf(UNKNOWN_STR);
 	}
 
+	close(sockfd);
+
 	if (strcmp((char *)wreq.u.essid.pointer, "") == 0)
 		return smprintf(UNKNOWN_STR);
 	else
