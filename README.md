@@ -39,11 +39,7 @@ Before you continue, please be sure that a C compiler (preferrably gcc), GNU mak
 
 Write the following code to your ~/.xinitrc (or any other initialization script):
 
-	while true; do
-		slstatus
-	done &
-
-The loop is needed that the program runs after suspend to ram.
+	slstatus &
 
 ## Contributing
 
