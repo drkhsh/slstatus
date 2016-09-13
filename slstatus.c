@@ -98,34 +98,36 @@ smprintf(const char *fmt, ...)
 static char *
 battery_perc(const char *battery)
 {
-	int now, full, perc;
+	int now, full;
 	FILE *fp;
 
-	ccat(4, BATTERY_PATH, battery, "/", BATTERY_NOW);
-
+	ccat(3, "/sys/class/power_supply/", battery, "/energy_now");
 	fp = fopen(concat, "r");
 	if (fp == NULL) {
-		warn("Error opening battery file: %s", concat);
-		return smprintf(UNKNOWN_STR);
+		ccat(4, "/sys/class/power_supply/", battery, "/charge_now");
+		fp = fopen(concat, "r");
+		if (fp == NULL) {
+			warn("Error opening battery file: %s", concat);
+			return smprintf(UNKNOWN_STR);
+		}
 	}
-
 	fscanf(fp, "%i", &now);
 	fclose(fp);
 
-	ccat(4, BATTERY_PATH, battery, "/", BATTERY_FULL);
-
+	ccat(3, "/sys/class/power_supply/", battery, "/energy_full");
 	fp = fopen(concat, "r");
 	if (fp == NULL) {
-		warn("Error opening battery file: %s", concat);
-		return smprintf(UNKNOWN_STR);
+		ccat(4, "/sys/class/power_supply/", battery, "/charge_full");
+		fp = fopen(concat, "r");
+		if (fp == NULL) {
+			warn("Error opening battery file: %s", concat);
+			return smprintf(UNKNOWN_STR);
+		}
 	}
-
 	fscanf(fp, "%i", &full);
 	fclose(fp);
 
-	perc = now / (full / 100);
-
-	return smprintf("%d%%", perc);
+	return smprintf("%d%%", now / (full / 100));
 }
 
 static char *
