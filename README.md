@@ -8,7 +8,7 @@ Looking at the LOC (lines of code) of the [Conky project](https://github.com/brn
 
 The following information is included:
 
-- Battery percentage
+- Battery percentage/state
 - CPU usage (in percent)
 - Custom shell commands
 - Date and time

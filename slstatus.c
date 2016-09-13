@@ -40,6 +40,7 @@ struct arg {
 
 static char *smprintf(const char *, ...);
 static char *battery_perc(const char *);
+static char *battery_state(const char *);
 static char *cpu_perc(void);
 static char *datetime(const char *);
 static char *disk_free(const char *);
@@ -111,6 +112,37 @@ battery_perc(const char *battery)
 	fclose(fp);
 
 	return smprintf("%d%%", perc);
+}
+
+static char *
+battery_state(const char *battery)
+{
+	char *state = malloc(sizeof(char)*12);
+	FILE *fp;
+
+	if (!state) {
+		warn("Failed to get battery state.");
+		return smprintf(UNKNOWN_STR);
+	}
+
+
+	ccat(3, "/sys/class/power_supply/", battery, "/status");
+	fp = fopen(concat, "r");
+	if (fp == NULL) {
+		warn("Error opening battery file: %s", concat);
+		return smprintf(UNKNOWN_STR);
+	}
+	fscanf(fp, "%s", state);
+	fclose(fp);
+
+	if (strcmp(state, "Charging") == 0)
+		return smprintf("+");
+	else if (strcmp(state, "Discharging") == 0)
+		return smprintf("-");
+	else if (strcmp(state, "Full") == 0)
+		return smprintf("=");
+	else
+		return smprintf("?");
 }
 
 static char *
