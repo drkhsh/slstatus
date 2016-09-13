@@ -459,7 +459,7 @@ uid(void)
 
 
 static char *
-vol_perc(const char *snd_card)
+vol_perc(const char *soundcard)
 { /* FIX THIS SHIT! */
 	long int vol, max, min;
 	snd_mixer_t *handle;
@@ -471,7 +471,7 @@ vol_perc(const char *snd_card)
 	snd_mixer_selem_register(handle, NULL, NULL);
 	snd_mixer_load(handle);
 	snd_mixer_selem_id_malloc(&s_elem);
-	snd_mixer_selem_id_set_name(s_elem, ALSA_CHANNEL);
+	snd_mixer_selem_id_set_name(s_elem, "Master");
 	elem = snd_mixer_find_selem(handle, s_elem);
 
 	if (elem == NULL) {
