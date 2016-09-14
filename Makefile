@@ -21,7 +21,7 @@ options:
 
 ${OBJ}: config.h config.mk
 
-config.h: config.def.h
+config.h:
 	@echo creating $@ from config.def.h
 	@cp config.def.h $@
 
