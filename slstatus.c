@@ -66,9 +66,8 @@ static char *wifi_perc(const char *);
 static char *wifi_essid(const char *);
 static void sighandler(const int);
 
-static unsigned short int delay;
+static unsigned short int delay, done;
 static Display *dpy;
-static int done = 0;
 
 #include "config.h"
 
@@ -117,7 +116,7 @@ battery_perc(const char *battery)
 static char *
 battery_state(const char *battery)
 {
-	char *state = malloc(sizeof(char)*12);
+	char *state[12]; 
 	FILE *fp;
 
 	if (!state) {
@@ -132,7 +131,7 @@ battery_state(const char *battery)
 		warn("Error opening battery file: %s", concat);
 		return smprintf(UNKNOWN_STR);
 	}
-	fscanf(fp, "%s", state);
+	fscanf(fp, "%12s", state);
 	fclose(fp);
 
 	if (strcmp(state, "Charging") == 0)
@@ -509,7 +508,7 @@ vol_perc(const char *soundcard)
 	if (elem == NULL) {
 		snd_mixer_selem_id_free(s_elem);
 		snd_mixer_close(handle);
-		warn("Failed to get volume percentage for: %s.", soundcard);
+		warn("Failed to get volume percentage for: %s", soundcard);
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -599,15 +598,14 @@ wifi_essid(const char *wificard)
 static void
 sighandler(const int signo)
 {
-	if (signo == SIGTERM || signo == SIGINT) {
+	if (signo == SIGTERM || signo == SIGINT)
 		done = 1;
-	}
 }
 
 int
 main(void)
 {
-	size_t i;
+	unsigned short int i;
 	char status_string[4096];
 	char *res, *element, *status_old;
 	struct arg argument;
@@ -619,8 +617,6 @@ main(void)
 	sigaction(SIGTERM, &act, 0);
 
 	dpy = XOpenDisplay(NULL);
-
-	XFetchName(dpy, DefaultRootWindow(dpy), &status_old);
 
 	while (!done) {
 		status_string[0] = '\0';
@@ -649,7 +645,7 @@ main(void)
 		delay = 0;
 	}
 
-	XStoreName(dpy, DefaultRootWindow(dpy), status_old);
+	XStoreName(dpy, DefaultRootWindow(dpy), NULL);
 	XSync(dpy, False);
 
 	XCloseDisplay(dpy);
