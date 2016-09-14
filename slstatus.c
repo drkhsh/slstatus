@@ -116,7 +116,7 @@ battery_perc(const char *battery)
 static char *
 battery_state(const char *battery)
 {
-	char *state[12]; 
+	char state[12]; 
 	FILE *fp;
 
 	if (!state) {
@@ -607,7 +607,7 @@ main(void)
 {
 	unsigned short int i;
 	char status_string[4096];
-	char *res, *element, *status_old;
+	char *res, *element;
 	struct arg argument;
 	struct sigaction act;
 
