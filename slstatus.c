@@ -406,26 +406,18 @@ ram_used(void)
 static char *
 run_command(const char* command)
 {
-	int good;
 	FILE *fp = popen(command, "r");
-	char buffer[64] = "";
+	char buffer[64] = '\0';
 
 	if (fp == NULL) {
 		warn("Could not get command output for: %s", command);
 		return smprintf(UNKNOWN_STR);
 	}
 
-	fgets(buffer, sizeof(buffer)-1, fp);
-	pclose(fp);
-	for (int i = 0 ; i != sizeof(buffer); i++) {
-		if (buffer[i] == '\0') {
-			good = 1;
-			break;
-		}
-	}
-	if (good)
-		buffer[strlen(buffer)-1] = '\0';
+	fgets(buffer, sizeof(buffer), fp);
+	buffer[sizeof(buffer)-1] = '\0';
 
+	pclose(fp);
 	return smprintf("%s", buffer);
 }
 
