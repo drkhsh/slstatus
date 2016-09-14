@@ -8,6 +8,7 @@
 #include <linux/wireless.h>
 #include <netdb.h>
 #include <pwd.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +40,7 @@ struct arg {
 
 static char *smprintf(const char *, ...);
 static char *battery_perc(const char *);
+static char *battery_state(const char *);
 static char *cpu_perc(void);
 static char *datetime(const char *);
 static char *disk_free(const char *);
@@ -62,9 +64,11 @@ static char *username(void);
 static char *vol_perc(const char *);
 static char *wifi_perc(const char *);
 static char *wifi_essid(const char *);
+static void sighandler(const int);
 
 static unsigned short int delay;
 static Display *dpy;
+static int done = 0;
 
 #include "config.h"
 
@@ -95,34 +99,50 @@ smprintf(const char *fmt, ...)
 static char *
 battery_perc(const char *battery)
 {
-	int now, full, perc;
+	int perc;
 	FILE *fp;
 
-	ccat(4, BATTERY_PATH, battery, "/", BATTERY_NOW);
-
+	ccat(3, "/sys/class/power_supply/", battery, "/capacity");
 	fp = fopen(concat, "r");
 	if (fp == NULL) {
 		warn("Error opening battery file: %s", concat);
 		return smprintf(UNKNOWN_STR);
 	}
-
-	fscanf(fp, "%i", &now);
+	fscanf(fp, "%i", &perc);
 	fclose(fp);
-
-	ccat(4, BATTERY_PATH, battery, "/", BATTERY_FULL);
-
-	fp = fopen(concat, "r");
-	if (fp == NULL) {
-		warn("Error opening battery file: %s", concat);
-		return smprintf(UNKNOWN_STR);
-	}
-
-	fscanf(fp, "%i", &full);
-	fclose(fp);
-
-	perc = now / (full / 100);
 
 	return smprintf("%d%%", perc);
+}
+
+static char *
+battery_state(const char *battery)
+{
+	char *state = malloc(sizeof(char)*12);
+	FILE *fp;
+
+	if (!state) {
+		warn("Failed to get battery state.");
+		return smprintf(UNKNOWN_STR);
+	}
+
+
+	ccat(3, "/sys/class/power_supply/", battery, "/status");
+	fp = fopen(concat, "r");
+	if (fp == NULL) {
+		warn("Error opening battery file: %s", concat);
+		return smprintf(UNKNOWN_STR);
+	}
+	fscanf(fp, "%s", state);
+	fclose(fp);
+
+	if (strcmp(state, "Charging") == 0)
+		return smprintf("+");
+	else if (strcmp(state, "Discharging") == 0)
+		return smprintf("-");
+	else if (strcmp(state, "Full") == 0)
+		return smprintf("=");
+	else
+		return smprintf("?");
 }
 
 static char *
@@ -470,26 +490,26 @@ uid(void)
 }
 
 
-static char * 
-vol_perc(const char *snd_card)
-{ /* FIX THIS SHIT! */
+static char *
+vol_perc(const char *soundcard)
+{
 	long int vol, max, min;
 	snd_mixer_t *handle;
 	snd_mixer_elem_t *elem;
 	snd_mixer_selem_id_t *s_elem;
 
 	snd_mixer_open(&handle, 0);
-	snd_mixer_attach(handle, snd_card);
+	snd_mixer_attach(handle, soundcard);
 	snd_mixer_selem_register(handle, NULL, NULL);
 	snd_mixer_load(handle);
 	snd_mixer_selem_id_malloc(&s_elem);
-	snd_mixer_selem_id_set_name(s_elem, ALSA_CHANNEL);
+	snd_mixer_selem_id_set_name(s_elem, "Master");
 	elem = snd_mixer_find_selem(handle, s_elem);
 
 	if (elem == NULL) {
 		snd_mixer_selem_id_free(s_elem);
 		snd_mixer_close(handle);
-		warn("error: ALSA");
+		warn("Failed to get volume percentage for: %s.", soundcard);
 		return smprintf(UNKNOWN_STR);
 	}
 
@@ -500,7 +520,7 @@ vol_perc(const char *snd_card)
 	snd_mixer_selem_id_free(s_elem);
 	snd_mixer_close(handle);
 
-	return smprintf("%d", ((uint_fast16_t)(vol * 100) / max));
+	return smprintf("%d%%", ((uint_fast16_t)(vol * 100) / max));
 }
 
 static char *
@@ -516,7 +536,7 @@ wifi_perc(const char *wificard)
 
 	fp = fopen(concat, "r");
 
-	if(fp == NULL) {
+	if (fp == NULL) {
 		warn("Error opening wifi operstate file");
 		return smprintf(UNKNOWN_STR);
 	}
@@ -558,7 +578,7 @@ wifi_essid(const char *wificard)
 	memset(&wreq, 0, sizeof(struct iwreq));
 	wreq.u.essid.length = IW_ESSID_MAX_SIZE+1;
 	sprintf(wreq.ifr_name, wificard);
-	if(sockfd == -1) {
+	if (sockfd == -1) {
 		warn("Cannot open socket for interface: %s", wificard);
 		return smprintf(UNKNOWN_STR);
 	}
@@ -568,10 +588,20 @@ wifi_essid(const char *wificard)
 		return smprintf(UNKNOWN_STR);
 	}
 
+	close(sockfd);
+
 	if (strcmp((char *)wreq.u.essid.pointer, "") == 0)
 		return smprintf(UNKNOWN_STR);
 	else
 		return smprintf("%s", (char *)wreq.u.essid.pointer);
+}
+
+static void
+sighandler(const int signo)
+{
+	if (signo == SIGTERM || signo == SIGINT) {
+		done = 1;
+	}
 }
 
 int
@@ -579,13 +609,21 @@ main(void)
 {
 	size_t i;
 	char status_string[4096];
-	char *res, *element;
+	char *res, *element, *status_old;
 	struct arg argument;
+	struct sigaction act;
+
+	memset(&act, 0, sizeof(act));
+	act.sa_handler = sighandler;
+	sigaction(SIGINT,  &act, 0);
+	sigaction(SIGTERM, &act, 0);
 
 	dpy = XOpenDisplay(NULL);
 
-	for (;;) {
-		memset(status_string, 0, sizeof(status_string));
+	XFetchName(dpy, DefaultRootWindow(dpy), &status_old);
+
+	while (!done) {
+		status_string[0] = '\0';
 		for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
 			argument = args[i];
 			if (argument.args == NULL)
@@ -610,6 +648,9 @@ main(void)
 		sleep(UPDATE_INTERVAL - delay);
 		delay = 0;
 	}
+
+	XStoreName(dpy, DefaultRootWindow(dpy), status_old);
+	XSync(dpy, False);
 
 	XCloseDisplay(dpy);
 
