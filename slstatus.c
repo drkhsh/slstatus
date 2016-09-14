@@ -119,12 +119,6 @@ battery_state(const char *battery)
 	char state[12]; 
 	FILE *fp;
 
-	if (!state) {
-		warn("Failed to get battery state.");
-		return smprintf(UNKNOWN_STR);
-	}
-
-
 	ccat(3, "/sys/class/power_supply/", battery, "/status");
 	fp = fopen(concat, "r");
 	if (fp == NULL) {
