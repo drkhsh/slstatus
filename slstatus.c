@@ -407,7 +407,7 @@ static char *
 run_command(const char* command)
 {
 	FILE *fp = popen(command, "r");
-	char buffer[64] = '\0';
+	char buffer[64] = "\0";
 
 	if (fp == NULL) {
 		warn("Could not get command output for: %s", command);
