@@ -1,13 +1,5 @@
 /* See LICENSE file for copyright and license details. */
 
-/* alsa sound */
-#define ALSA_CHANNEL    "Master"
-
-/* battery */
-#define BATTERY_PATH    "/sys/class/power_supply/"
-#define BATTERY_NOW     "energy_now"
-#define BATTERY_FULL    "energy_full_design"
-
 /* how often to update the statusbar (min value == 1) */
 #define UPDATE_INTERVAL 1
 
@@ -16,6 +8,7 @@
 
 /* statusbar
 - battery_perc (battery percentage) [argument: battery name]
+- battery_state (battery charging state) [argument: battery name]
 - cpu_perc (cpu usage in percent) [argument: NULL]
 - datetime (date and time) [argument: format]
 - disk_free (disk usage in percent) [argument: mountpoint]

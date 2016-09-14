@@ -8,7 +8,7 @@ Looking at the LOC (lines of code) of the [Conky project](https://github.com/brn
 
 The following information is included:
 
-- Battery percentage
+- Battery percentage/state
 - CPU usage (in percent)
 - Custom shell commands
 - Date and time
@@ -39,11 +39,7 @@ Before you continue, please be sure that a C compiler (preferrably gcc), GNU mak
 
 Write the following code to your ~/.xinitrc (or any other initialization script):
 
-	while true; do
-		slstatus
-	done &
-
-The loop is needed that the program runs after suspend to ram.
+	slstatus &
 
 ## Contributing
 
