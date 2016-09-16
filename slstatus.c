@@ -26,6 +26,7 @@
 #undef strlcat
 #undef strlcpy
 
+#include "arg.h"
 #include "strlcat.h"
 #include "strlcpy.h"
 #include "concat.h"
@@ -64,9 +65,12 @@ static char *username(void);
 static char *vol_perc(const char *);
 static char *wifi_perc(const char *);
 static char *wifi_essid(const char *);
+static void set_status(const char *);
 static void sighandler(const int);
+static void usage(void);
 
-static unsigned short int delay, done;
+char *argv0;
+static unsigned short int delay, done, dflag, oflag;
 static Display *dpy;
 
 #include "config.h"
@@ -580,20 +584,55 @@ wifi_essid(const char *wificard)
 }
 
 static void
+set_status(const char *str)
+{
+	XStoreName(dpy, DefaultRootWindow(dpy), str);
+	XSync(dpy, False);
+}
+
+static void
 sighandler(const int signo)
 {
 	if (signo == SIGTERM || signo == SIGINT)
 		done = 1;
 }
 
+static void
+usage(void)
+{
+	fprintf(stderr,
+		"slstatus (c) 2016, drkhsh\n"
+		"usage: %s [-dho]\n",
+		argv0);
+	exit(1);
+}
+
+
+
 int
-main(void)
+main(int argc, char *argv[])
 {
 	unsigned short int i;
 	char status_string[4096];
 	char *res, *element;
 	struct arg argument;
 	struct sigaction act;
+
+	ARGBEGIN {
+		case 'd':
+			dflag = 1;
+			break;
+		case 'o':
+			oflag = 1;
+			break;
+		default:
+			usage();
+	} ARGEND
+
+	if (dflag && oflag)
+		usage();
+	if (dflag)
+		(void)daemon(1, 1);
 
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = sighandler;
@@ -604,6 +643,7 @@ main(void)
 
 	while (!done) {
 		status_string[0] = '\0';
+
 		for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
 			argument = args[i];
 			if (argument.args == NULL)
@@ -619,8 +659,12 @@ main(void)
 			free(res);
 			free(element);
 		}
-		XStoreName(dpy, DefaultRootWindow(dpy), status_string);
-		XSync(dpy, False);
+
+		if (!oflag)
+			set_status(status_string);
+		else
+			printf("%s\n", status_string);
+
 		/*
 		 * subtract delay time spend in function
 		 * calls from the actual global delay time
@@ -629,8 +673,8 @@ main(void)
 		delay = 0;
 	}
 
-	XStoreName(dpy, DefaultRootWindow(dpy), NULL);
-	XSync(dpy, False);
+	if (!oflag)
+		set_status(NULL);
 
 	XCloseDisplay(dpy);
 
