@@ -33,7 +33,7 @@
 
 struct arg {
 	char *(*func)();
-	const char *format;
+	const char *fmt;
 	const char *args;
 };
 
@@ -647,7 +647,7 @@ main(int argc, char *argv[])
 			} else {
 				res = argument.func(argument.args);
 			}
-			element = smprintf(argument.format, res);
+			element = smprintf(argument.fmt, res);
 			if (element == NULL) {
 				element = smprintf(UNKNOWN_STR);
 				warnx("Failed to format output");
