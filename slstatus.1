@@ -1,0 +1,28 @@
+.TH SLSTATUS 1 slstatus\-VERSION
+.SH NAME
+slstatus \- suckless status
+.SH SYNOPSIS
+.B dwm
+.RB [ \-dho ]
+.SH DESCRIPTION
+slstatus is a suckless and lightweight status monitor for window managers that use WM_NAME as statusbar (e.g. DWM). It is written in pure C without any system calls and only reads from files most of the time. It is meant to be a better alternative to Bash scripts (inefficient) and Conky (bloated for this use).
+.SH OPTIONS
+.TP
+.B \-d
+runs slstatus as daemon in background
+.TP
+.B \-h
+displays usage
+.TP
+.B \-o
+output to console instead of WM_NAME
+.SH CUSTOMIZATION
+.B slstatus
+can be customized by creating a custom config.h and (re)compiling the source
+code. This keeps it fast, secure and simple.
+.SH AUTHORS
+See the LICENSE file for the authors.
+.SH LICENSE
+See the LICENSE file for the terms of redistribution.
+.SH BUGS
+See the FIXME's in the code.
