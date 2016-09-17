@@ -26,10 +26,10 @@
 #undef strlcat
 #undef strlcpy
 
-#include "arg.h"
-#include "strlcat.h"
-#include "strlcpy.h"
-#include "concat.h"
+#include "extern/arg.h"
+#include "extern/strlcat.h"
+#include "extern/strlcpy.h"
+#include "extern/concat.h"
 
 struct arg {
 	char *(*func)();
