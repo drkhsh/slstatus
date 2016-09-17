@@ -633,7 +633,9 @@ main(int argc, char *argv[])
 	sigaction(SIGINT,  &act, 0);
 	sigaction(SIGTERM, &act, 0);
 
-	dpy = XOpenDisplay(NULL);
+	if (!oflag) {
+		dpy = XOpenDisplay(NULL);
+	}
 
 	while (!done) {
 		status_string[0] = '\0';
@@ -671,9 +673,8 @@ main(int argc, char *argv[])
 
 	if (!oflag) {
 		set_status(NULL);
+		XCloseDisplay(dpy);
 	}
-
-	XCloseDisplay(dpy);
 
 	return 0;
 }
