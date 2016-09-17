@@ -406,7 +406,7 @@ static char *
 run_command(const char *cmd)
 {
 	FILE *fp;
-	char buf[64] = "\0";
+	char buf[64] = "n/a";
 
 	fp = popen(cmd, "r");
 	if (fp == NULL) {
