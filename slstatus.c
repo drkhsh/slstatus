@@ -592,10 +592,7 @@ sighandler(const int signo)
 static void
 usage(void)
 {
-	fprintf(stderr,
-		"slstatus (c) 2016, aaron marcher\n"
-		"usage: %s [-dho]\n",
-		argv0);
+	fprintf(stderr, "usage: %s [-dho]\n", argv0);
 	exit(1);
 }
 
