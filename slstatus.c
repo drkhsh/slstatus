@@ -592,7 +592,7 @@ sighandler(const int signo)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-dho]\n", argv0);
+	fprintf(stderr, "usage: %s [-dhov]\n", argv0);
 	exit(1);
 }
 
@@ -612,6 +612,9 @@ main(int argc, char *argv[])
 		case 'o':
 			oflag = 1;
 			break;
+		case 'v':
+			printf("%s version %s (c) 2016 slstatus engineers\n", argv0, VERSION);
+			return 0;
 		default:
 			usage();
 	} ARGEND
