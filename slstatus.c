@@ -1,11 +1,4 @@
-/*
- * Copyright (C) 2016, drkhsh
- * Copyright (C) 2016, Ali H. Fardan (Raiz) <raiz@firemail.cc>
- * see LICENSE for copyright details
- */
-
-#define _GNU_SOURCE
-#define VERSION "2.0"
+/* See LICENSE file for copyright and license details. */
 
 #include <alsa/asoundlib.h>
 #include <err.h>
