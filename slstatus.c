@@ -1,4 +1,11 @@
-/* See LICENSE file for copyright and license details. */
+/*
+ * Copyright (C) 2016, drkhsh
+ * Copyright (C) 2016, Ali H. Fardan (Raiz) <raiz@firemail.cc>
+ * see LICENSE for copyright details
+ */
+
+#define _GNU_SOURCE
+#define VERSION "2.0"
 
 #include <alsa/asoundlib.h>
 #include <err.h>
@@ -88,10 +95,8 @@ smprintf(const char *fmt, ...)
 	va_end(ap);
 
 	ret = malloc(++len);
-	if (ret == NULL) {
-		warn("Malloc failed.");
-		return "n/a";
-	}
+	if (ret == NULL)
+		err(1, "malloc");
 
 	va_start(ap, fmt);
 	vsnprintf(ret, len, fmt, ap);
@@ -613,7 +618,7 @@ main(int argc, char *argv[])
 			oflag = 1;
 			break;
 		case 'v':
-			printf("%s version %s (c) 2016 slstatus engineers\n", argv0, VERSION);
+			printf("slstatus %s (C) 2016 slstatus engineers\n", VERSION);
 			return 0;
 		default:
 			usage();
