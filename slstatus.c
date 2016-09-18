@@ -90,7 +90,7 @@ smprintf(const char *fmt, ...)
 	ret = malloc(++len);
 	if (ret == NULL) {
 		warn("Malloc failed.");
-		exit(1);
+		return "n/a";
 	}
 
 	va_start(ap, fmt);
