@@ -88,8 +88,9 @@ smprintf(const char *fmt, ...)
 	va_end(ap);
 
 	ret = malloc(++len);
-	if (ret == NULL)
+	if (ret == NULL) {
 		err(1, "malloc");
+	}
 
 	va_start(ap, fmt);
 	vsnprintf(ret, len, fmt, ap);
