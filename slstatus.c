@@ -470,38 +470,59 @@ uid(void)
 	return smprintf("%d", geteuid());
 }
 
-
 static char *
 vol_perc(const char *card)
 {
-	long int vol, max, min;
-	snd_mixer_t *handle;
-	snd_mixer_elem_t *elem;
-	snd_mixer_selem_id_t *s_elem;
+  snd_mixer_t *handle = NULL;
+  snd_mixer_elem_t *elem = NULL;
+  snd_mixer_selem_id_t *s_elem = NULL;
+  long int vol = 0L, max = 0L, min = 0L, percent = 0L;
 
-	snd_mixer_open(&handle, 0);
-	snd_mixer_attach(handle, card);
-	snd_mixer_selem_register(handle, NULL, NULL);
-	snd_mixer_load(handle);
-	snd_mixer_selem_id_malloc(&s_elem);
-	snd_mixer_selem_id_set_name(s_elem, "Master");
-	elem = snd_mixer_find_selem(handle, s_elem);
+  if (0 != (snd_mixer_open(&handle, 0))) {
+    return smprintf("%ld%%", percent);
+  }
 
-	if (elem == NULL) {
-		snd_mixer_selem_id_free(s_elem);
-		snd_mixer_close(handle);
-		warn("Failed to get volume percentage for %s", card);
-		return smprintf(UNKNOWN_STR);
-	}
+  if (0 != (snd_mixer_attach(handle, card))) {
+    goto error;
+  }
 
-	snd_mixer_handle_events(handle);
-	snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-	snd_mixer_selem_get_playback_volume(elem, 0, &vol);
+  if (0 != (snd_mixer_selem_register(handle, NULL, NULL))) {
+    goto error;
+  }
 
-	snd_mixer_selem_id_free(s_elem);
-	snd_mixer_close(handle);
+  if (0 != (snd_mixer_load(handle))) {
+    goto error;
+  }
 
-	return smprintf("%d%%", ((uint_fast16_t)(vol * 100) / max));
+  snd_mixer_selem_id_malloc(&s_elem);
+  if (NULL == s_elem) {
+    goto error;
+  }
+
+  snd_mixer_selem_id_set_name(s_elem, "Master");
+  if (NULL == (elem = snd_mixer_find_selem(handle, s_elem))) {
+    goto error;
+  }
+
+  if (0 != (snd_mixer_selem_get_playback_volume(elem, 0, &vol))) {
+    goto error;
+  }
+  snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
+
+  percent = 0L;
+  if (0 != max) {
+    percent = (vol * 100) / max;
+  }
+
+error:
+  if (NULL != s_elem) {
+    snd_mixer_selem_id_free(s_elem);
+  }
+  if (NULL != handle) {
+    snd_mixer_close(handle);
+  }
+  return smprintf("%ld%%", percent);
+
 }
 
 static char *
