@@ -13,7 +13,7 @@ LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 -lasound
 
 CPPFLAGS = -DVERSION=\"${VERSION}\" -D_GNU_SOURCE
 # -Wno-unused-function for routines not activated by user
-CFLAGS = -std=c99 -pedantic -Wno-unused-function -Wall -Wextra -Os ${INCS} ${CPPFLAGS}
+CFLAGS = -std=c99 -pedantic -Wno-unused-function -Wall -Wextra -Os -pipe -Wundef -Wshadow -W -Wwrite-strings -Wcast-align -Wconversion -Wpointer-arith -Wstrict-prototypes -Wformat=2 -Wsign-compare -Wendif-labels -Wredundant-decls -Wmissing-prototypes -Wstrict-overflow=5 ${INCS} ${CPPFLAGS}
 LDFLAGS = ${LIBS}
 
 CC = cc
