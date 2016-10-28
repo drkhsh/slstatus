@@ -19,6 +19,7 @@ The following information is included:
 - IP addresses
 - Load averages
 - Memory status (free memory, percentage, total memory and used memory)
+- Swap status (free swap, percentage, total swap and used swap)
 - Temperature
 - Uptime
 - Volume percentage (ALSA)
