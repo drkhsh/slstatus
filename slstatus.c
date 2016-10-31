@@ -38,6 +38,7 @@ struct arg {
 	const char *args;
 };
 
+static char *_e(const char*, ...);
 static char *smprintf(const char *fmt, ...);
 static char *battery_perc(const char *bat);
 static char *battery_state(const char *bat);
@@ -81,6 +82,7 @@ static Display *dpy;
 
 #include "config.h"
 
+/* TODO: use this on the rest of the program */
 static char *
 _e(const char *fmt, ...)
 {
@@ -88,10 +90,10 @@ _e(const char *fmt, ...)
 
 	if (fmt) {
 		va_start(ap, fmt);
-		if (fmt[strlen(fmt)] == ':')
-			vwarn(fmt, ap);
-		else
-			vwarnx(fmt, ap);
+		vfprintf(stderr, fmt, ap);
+		if (fmt[strlen(fmt)-1] == ':')
+			fprintf(stderr, " %s", strerror(errno));
+		fputc('\n', stderr);
 		va_end(ap);
 	}
 
@@ -203,7 +205,7 @@ datetime(const char *fmt)
 
 	t = time(NULL);
 	if (strftime(str, sizeof(str), fmt, localtime(&t)) == 0) {
-		return smprintf(UNKNOWN_STR);
+		return (_e(NULL));
 	}
 
 	return smprintf("%s", str);
@@ -293,8 +295,7 @@ hostname(void)
 	char buf[HOST_NAME_MAX];
 
 	if (gethostname(buf, sizeof(buf)) == -1) {
-		warn("hostname");
-		return smprintf(UNKNOWN_STR);
+		return (_e("hostname:"));
 	}
 
 	return smprintf("%s", buf);
