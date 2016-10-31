@@ -82,6 +82,23 @@ static Display *dpy;
 #include "config.h"
 
 static char *
+_e(const char *fmt, ...)
+{
+	va_list ap;
+
+	if (fmt) {
+		va_start(ap, fmt);
+		if (fmt[strlen(fmt)] == ':')
+			vwarn(fmt, ap);
+		else
+			vwarnx(fmt, ap);
+		va_end(ap);
+	}
+
+	return (smprintf("%s", UNKNOWN_STR));
+}
+
+static char *
 smprintf(const char *fmt, ...)
 {
 	va_list ap;
