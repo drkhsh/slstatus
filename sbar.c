@@ -1,5 +1,5 @@
 /*
-  * Copyright (C) 2016 Ali H. Fardan (Raiz)
+ * Copyright (C) 2016 Ali H. Fardan (Raiz)
  * see LICENSE for details
  */
 
