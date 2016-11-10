@@ -1,0 +1,5 @@
+[X] rewrite the makefile
+[X] get rid of config.mk preprocessor flags
+[-] remove linux-only routines
+[ ] fix the manpage
+[ ] clean up the code
