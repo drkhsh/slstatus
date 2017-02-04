@@ -641,8 +641,7 @@ uptime(void)
 static char *
 username(void)
 {
-	uid_t uid = geteuid();
-	struct passwd *pw = getpwuid(uid);
+	struct passwd *pw = getpwuid(geteuid());
 
 	if (pw == NULL) {
 		warn("Failed to get username");
