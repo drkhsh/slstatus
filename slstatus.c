@@ -71,7 +71,7 @@ static void usage(const int eval);
 char *argv0;
 static unsigned short int delay = 0;
 static unsigned short int done;
-static unsigned short int dflag, oflag;
+static unsigned short int dflag, oflag, nflag, iflag;
 static Display *dpy;
 
 #include "config.h"
@@ -160,8 +160,10 @@ cpu_perc(void)
 	fscanf(fp, "%*s %Lf %Lf %Lf %Lf", &a[0], &a[1], &a[2], &a[3]);
 	fclose(fp);
 
-	delay++;
-	sleep(delay);
+	if (!nflag) {
+		delay++;
+		sleep(delay);
+	}
 
 	fp = fopen("/proc/stat", "r");
 	if (fp == NULL) {
@@ -767,7 +769,7 @@ sighandler(const int signo)
 static void
 usage(const int eval)
 {
-	fprintf(stderr, "usage: %s [-d] [-o] [-v] [-h]\n", argv0);
+	fprintf(stderr, "usage: %s [-in] [-d | -o | -v | -h]\n", argv0);
 	exit(eval);
 }
 
@@ -777,12 +779,19 @@ main(int argc, char *argv[])
 	unsigned short int i;
 	char status_string[2048];
 	char *res, *element;
+	char *ptr;
 	struct arg argument;
 	struct sigaction act;
 
 	ARGBEGIN {
 		case 'd':
 			dflag = 1;
+			break;
+		case 'i':
+			iflag = 1;
+			break;
+		case 'n':
+			nflag = 1;
 			break;
 		case 'o':
 			oflag = 1;
@@ -817,36 +826,45 @@ main(int argc, char *argv[])
 	while (!done) {
 		status_string[0] = '\0';
 
-		for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
-			argument = args[i];
-			if (argument.args == NULL) {
-				res = argument.func();
-			} else {
-				res = argument.func(argument.args);
+		if (iflag) {
+			if (fgets(status_string, sizeof(status_string), stdin) == NULL)
+				break; /* done */
+			if ((ptr = strrchr(status_string, '\n')) != NULL)
+				*ptr = '\0';
+		} else {
+			for (i = 0; i < sizeof(args) / sizeof(args[0]); ++i) {
+				argument = args[i];
+				if (argument.args == NULL) {
+					res = argument.func();
+				} else {
+					res = argument.func(argument.args);
+				}
+				element = smprintf(argument.fmt, res);
+				if (element == NULL) {
+					element = smprintf("%s", UNKNOWN_STR);
+					warnx("Failed to format output");
+				}
+				strncat(status_string, element, sizeof(status_string) - strlen(status_string) - 1);
+				free(res);
+				free(element);
 			}
-			element = smprintf(argument.fmt, res);
-			if (element == NULL) {
-				element = smprintf("%s", UNKNOWN_STR);
-				warnx("Failed to format output");
-			}
-			strncat(status_string, element, sizeof(status_string) - strlen(status_string) - 1);
-			free(res);
-			free(element);
 		}
 
-		if (!oflag) {
+		if (oflag) {
+			printf("%s\n", status_string);
+		} else {
 			XStoreName(dpy, DefaultRootWindow(dpy), status_string);
 			XSync(dpy, False);
-		} else {
-			printf("%s\n", status_string);
 		}
 
-		if ((UPDATE_INTERVAL - delay) <= 0) {
-			delay = 0;
-			continue;
-		} else {
-			sleep(UPDATE_INTERVAL - delay);
-			delay = 0;
+		if (!nflag) {
+			if ((UPDATE_INTERVAL - delay) <= 0) {
+				delay = 0;
+				continue;
+			} else {
+				sleep(UPDATE_INTERVAL - delay);
+				delay = 0;
+			}
 		}
 	}
 
