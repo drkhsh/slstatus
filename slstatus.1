@@ -3,13 +3,19 @@
 slstatus \- suckless status
 .SH SYNOPSIS
 .B slstatus
-.RB [ \-dhov ]
+.RB [ \-in ][ \-d | \-h | \-o | \-v ]
 .SH DESCRIPTION
 slstatus is a suckless and lightweight status monitor for window managers that use WM_NAME as statusbar (e.g. DWM) or any other status bars as long as they support reading from stdin. It is written in pure C without any extern programs being executed and only reads from files most of the time. slstatus is meant to be a better alternative to Bash scripts (inefficient) and Conky (bloated and written in C++).
 .SH OPTIONS
 .TP
 .B \-d
 run slstatus as daemon in background
+.TP
+.B \-i
+read status from stdin
+.TP
+.B \-n
+no delay
 .TP
 .B \-h
 display help
