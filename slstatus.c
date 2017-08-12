@@ -380,9 +380,15 @@ kernel_release(void)
 static const char *
 keyboard_indicators(void)
 {
+	Display *dpy = XOpenDisplay(NULL);
 	XKeyboardState state;
 
+	if (dpy == NULL) {
+		warnx("XOpenDisplay failed");
+		return UNKNOWN_STR;
+	}
 	XGetKeyboardControl(dpy, &state);
+	XCloseDisplay(dpy);
 
 	switch (state.led_mask) {
 		case 1:
