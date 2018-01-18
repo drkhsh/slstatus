@@ -14,6 +14,7 @@
 const char *
 wifi_perc(const char *iface)
 {
+	struct ifaddrs *ifap, *ifa;
 	int i, cur;
 	float perc;
 	int total = 70; /* the max of /proc/net/wireless */
@@ -21,6 +22,20 @@ wifi_perc(const char *iface)
 	char path[PATH_MAX];
 	char status[5];
 	FILE *fp;
+
+	if (getifaddrs(&ifap) == -1) {
+		warn("Failed to get signal for interface %s", iface);
+		return NULL;
+	}
+
+	for (ifa = ifap; ifa != NULL; ifa = ifa->ifa_next) {
+		if ((strncmp(ifa->ifa_name, iface, strlen(iface)) == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
+            iface = ifa->ifa_name;
+            break;
+		}
+	}
+
+	freeifaddrs(ifap);
 
 	snprintf(path, sizeof(path), "%s%s%s", "/sys/class/net/", iface, "/operstate");
 	fp = fopen(path, "r");
@@ -62,9 +77,24 @@ wifi_perc(const char *iface)
 const char *
 wifi_essid(const char *iface)
 {
+	struct ifaddrs *ifap, *ifa;
 	static char id[IW_ESSID_MAX_SIZE+1];
 	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	struct iwreq wreq;
+
+	if (getifaddrs(&ifap) == -1) {
+		warn("Failed to get ESSID for interface %s", iface);
+		return NULL;
+	}
+
+	for (ifa = ifap; ifa != NULL; ifa = ifa->ifa_next) {
+		if ((strncmp(ifa->ifa_name, iface, strlen(iface)) == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
+            iface = ifa->ifa_name;
+            break;
+		}
+	}
+
+	freeifaddrs(ifap);
 
 	memset(&wreq, 0, sizeof(struct iwreq));
 	wreq.u.essid.length = IW_ESSID_MAX_SIZE+1;

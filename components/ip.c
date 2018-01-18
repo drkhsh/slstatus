@@ -24,7 +24,7 @@ ipv4(const char *iface)
 			continue;
 		}
 		s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-		if ((strcmp(ifa->ifa_name, iface) == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
+		if ((strncmp(ifa->ifa_name, iface, strlen(iface)) == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
 			if (s != 0) {
 				warnx("Failed to get IPv4 address for interface %s", iface);
 				return NULL;
@@ -55,7 +55,7 @@ ipv6(const char *iface)
 			continue;
 		}
 		s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in6), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-		if ((strcmp(ifa->ifa_name, iface) == 0) && (ifa->ifa_addr->sa_family == AF_INET6)) {
+		if ((strncmp(ifa->ifa_name, iface, strlen(iface)) == 0) && (ifa->ifa_addr->sa_family == AF_INET6)) {
 			if (s != 0) {
 				warnx("Failed to get IPv6 address for interface %s", iface);
 				return NULL;
