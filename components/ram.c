@@ -59,6 +59,8 @@
 	#include <sys/types.h>
 	#include <unistd.h>
 
+	#define LOG1024 	10
+
 	inline int
 	load_uvmexp(struct uvmexp *uvmexp)
 	{
@@ -79,8 +81,7 @@
 
 		if (load_uvmexp(&uvmexp)) {
 			free_pages = uvmexp.npages - uvmexp.active;
-			free = (double) (free_pages * uvmexp.pagesize) / 1024 /
-			       1024 / 1024;
+			free = (float)(free_pages << (uvmexp.pageshift - LOG1024)) / 1024 / 1024; 
 			return bprintf("%f", free);
 		}
 
@@ -108,8 +109,7 @@
 		float total;
 
 		if (load_uvmexp(&uvmexp)) {
-			total = (double) (uvmexp.npages * uvmexp.pagesize) /
-			        1024 / 1024 / 1024;
+			total = (float)(uvmexp.npages << (uvmexp.pageshift - LOG1024)) / 1024 / 1024; 
 			return bprintf("%f", total);
 		}
 
