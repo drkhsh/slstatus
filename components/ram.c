@@ -59,19 +59,34 @@
 	const char *
 	ram_used(const char *unused)
 	{
-		uintmax_t total, free, buffers, cached, used;
+		FILE *fp;
+                if (!(fp = fopen("/proc/meminfo", "r"))) {
+                        warn("fopen '/proc/meminfo':");
+                        return NULL;
+                }
+                uintmax_t total,free,buffers,cached,slab,kernel,shared;
+                if(!fscanf(fp,"%*s %ju %*s",&total))
+                        return NULL;
+                if(!fscanf(fp,"%*s %ju %*s",&free))
+                        return NULL;
+                if(!fscanf(fp,"%*s %ju %*s",&buffers))
+                        return NULL;
+                if(!fscanf(fp,"%*s %ju %*s",&buffers))
+                        return NULL;
+                if(!fscanf(fp,"%*s %ju %*s",&cached))
+                        return NULL;
+                for(int i=1;i<=18;i++)
+                        if(!fscanf(fp,"%*s %ju %*s",&shared))
+                        return NULL;
+                for(int i=1;i<=2;i++)
+                        if(!fscanf(fp,"%*s %ju %*s",&slab))
+                        return NULL;
+                for(int i=1;i<=3;i++)
+                        if(!fscanf(fp,"%*s %ju %*s",&kernel))
+                        return NULL;
+                fclose(fp);
+                return fmt_human((total - free - buffers - cached - slab + kernel + shared)*1024,1024);
 
-		if (pscanf("/proc/meminfo",
-		           "MemTotal: %ju kB\n"
-		           "MemFree: %ju kB\n"
-		           "MemAvailable: %ju kB\n"
-		           "Buffers: %ju kB\n"
-		           "Cached: %ju kB\n",
-		           &total, &free, &buffers, &buffers, &cached) != 5)
-			return NULL;
-
-		used = (total - free - buffers - cached);
-		return fmt_human(used * 1024, 1024);
 	}
 #elif defined(__OpenBSD__)
 	#include <stdlib.h>
