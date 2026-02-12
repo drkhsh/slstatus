@@ -62,7 +62,7 @@
 			{ "Not charging", "o" },
 		};
 		size_t i;
-		char path[PATH_MAX], state[12];
+		char path[PATH_MAX], state[13];
 
 		if (esnprintf(path, sizeof(path), POWER_SUPPLY_STATUS, bat) < 0)
 			return NULL;
@@ -81,7 +81,7 @@
 	{
 		uintmax_t charge_now, current_now, m, h;
 		double timeleft;
-		char path[PATH_MAX], state[12];
+		char path[PATH_MAX], state[13];
 
 		if (esnprintf(path, sizeof(path), POWER_SUPPLY_STATUS, bat) < 0)
 			return NULL;
